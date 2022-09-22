@@ -7,7 +7,7 @@
 
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
-#include "../Obejct/InventoryTut_Item.h"
+#include "../Widget/InvTut_InterfaceWidget.h"
 
 #include "InventoryTut_PlayerCharacter.generated.h"
 
@@ -31,12 +31,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+	UFUNCTION(Category = "TUTORIAL")
+	void AddItemToInventoryidget(FItemData ItemData);
+
+
 private:
+	// Binded Function
 	void MoveForward(float InputAxis);
 	void MoveRight(float InputAxis);
-
 	void Interact();
-
+	void ChangeUI();
 
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere);
@@ -47,12 +51,6 @@ private:
 
 
 	// HUD Widget Property
-	TSubclassOf<class UUserWidget> HUDClass;
-	class UUserWidget*				HUDWidget;
-
-	// Test용 Image Test 완료 후 즉시 지울것
-	UTexture2D* TestImage;
-	TSubclassOf<class AInventoryTut_Item> TestClass;
-	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere)
-	FItemData ItemData;
+	TSubclassOf<UInvTut_InterfaceWidget>	InterfaceClass;
+	UInvTut_InterfaceWidget*				InterfaceWidget;
 };

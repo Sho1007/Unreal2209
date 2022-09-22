@@ -2,7 +2,7 @@
 
 
 #include "./InventoryTut_PlayerCharacter.h"
-#include "../Widget/InvTut_Inventory_ItemWidget.h"
+#include "../Interface/InteractableInterface.h"
 #include "./InvTut_PlayerController.h"
 
 
@@ -13,7 +13,7 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// SkeletalMesh Setting
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Body(TEXT("SkeletalMesh'/Game/Resources/Mesh/Paladin/Paladin_J_Nordstrom.Paladin_J_Nordstrom'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Body(TEXT("SkeletalMesh'/Game/Resources/Mesh/Knight/knight.knight'"));
 
 	if (SK_Body.Succeeded())
 	{
@@ -37,31 +37,13 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 
 
 	// HUD Setting
-	HUDClass = nullptr;
-	HUDWidget = nullptr;
+	InterfaceClass = nullptr;
+	InterfaceWidget = nullptr;
 
-	static ConstructorHelpers::FClassFinder<UUserWidget> Temp(TEXT("WidgetBlueprint'/Game/InventoryTut/Widgets/WBP_InvTut_Inventory_Item.WBP_InvTut_Inventory_Item_C'"));
+	static ConstructorHelpers::FClassFinder<UInvTut_InterfaceWidget> Temp(TEXT("WidgetBlueprint'/Game/InventoryTut/Widgets/WBP_InvTut_Interface.WBP_InvTut_Interface_C'"));
 	if (Temp.Succeeded())
 	{
-		HUDClass = Temp.Class;
-	}
-	else
-		return;
-
-	// Image Test
-
-	static ConstructorHelpers::FObjectFinder<UTexture2D> Texture_Body(TEXT("Texture2D'/Game/Resources/Textures/cloud_whale_image.cloud_whale_image'"));
-	if (Texture_Body.Succeeded())
-	{
-		TestImage = Texture_Body.Object;
-	}
-	else
-		return;
-
-	static ConstructorHelpers::FClassFinder<AInventoryTut_Item> Item_Body(TEXT("Blueprint'/Game/InventoryTut/Blueprints/BP_InventoryTut_Item.BP_InventoryTut_Item_C'"));
-	if (Item_Body.Succeeded())
-	{
-		TestClass = Item_Body.Class;
+		InterfaceClass = Temp.Class;
 	}
 	else
 		return;
@@ -73,22 +55,15 @@ void AInventoryTut_PlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 	
 	// Create HUD Widget
-	if (IsLocallyControlled() && HUDClass != nullptr)
+	if (IsLocallyControlled() && InterfaceClass != nullptr)
 	{
 		AInvTut_PlayerController* PC = GetController<AInvTut_PlayerController>();
 		if (IsValid(PC))
 		{
-			HUDWidget = CreateWidget<UUserWidget>(PC, HUDClass);
+			InterfaceWidget = CreateWidget<UInvTut_InterfaceWidget>(PC, InterfaceClass);
 
-			
-			ItemData.ItemCost = 500.0f;
-			ItemData.ItemImage = TestImage;
-			ItemData.ItemClass = TestClass;
-
-			Cast<UInvTut_Inventory_ItemWidget>(HUDWidget)->Init(ItemData);
-
-			if (IsValid(HUDWidget))
-				HUDWidget->AddToPlayerScreen();
+			if (IsValid(InterfaceWidget))
+				InterfaceWidget->AddToPlayerScreen();
 		}
 	}
 }
@@ -112,6 +87,13 @@ void AInventoryTut_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* P
 	PlayerInputComponent->BindAxis("LookRight", this, &AInventoryTut_PlayerCharacter::AddControllerYawInput);
 
 	PlayerInputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AInventoryTut_PlayerCharacter::Interact);
+
+	PlayerInputComponent->BindKey(EKeys::I, EInputEvent::IE_Pressed, this, &AInventoryTut_PlayerCharacter::ChangeUI);
+}
+
+void AInventoryTut_PlayerCharacter::AddItemToInventoryidget(FItemData ItemData)
+{
+	InterfaceWidget->GetInventoryWidget()->AddItem(ItemData);
 }
 
 void AInventoryTut_PlayerCharacter::MoveForward(float InputAxis)
@@ -155,8 +137,13 @@ void AInventoryTut_PlayerCharacter::Interact()
 	{
 		if (IInteractableInterface* Interface = Cast<IInteractableInterface>(HitResult.GetActor()))
 		{
-			Interface->Interact();
+			Interface->Interact(this);
 		}
 	}
+}
+
+void AInventoryTut_PlayerCharacter::ChangeUI()
+{
+	InterfaceWidget->ToggleSwitcherIndex();
 }
 

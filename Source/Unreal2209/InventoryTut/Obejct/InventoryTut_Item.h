@@ -41,12 +41,12 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category = "TUTORIAL")
 	UStaticMeshComponent* ItemMesh;
 
-	UPROPERTY(EditDefaultsOnly, Category = "TUTORIAL")
+	UPROPERTY(meta = (AllowPrivateAccess = true), EditDefaultsOnly, Category = "TUTORIAL")
 	FItemData ItemData;
 
 public:
-	virtual void Interact() override;
+	virtual void Interact(class AInventoryTut_PlayerCharacter* Character) override;
 
 	void SetItemData(FItemData Value) { ItemData = Value; }
-	FItemData GetItemData() { return ItemData; }
+	FItemData GetItemData() const { return ItemData; }
 };

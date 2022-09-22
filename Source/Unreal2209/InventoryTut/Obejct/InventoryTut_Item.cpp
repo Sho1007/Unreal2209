@@ -2,6 +2,7 @@
 
 
 #include "./InventoryTut_Item.h"
+#include "../Character/InventoryTut_PlayerCharacter.h"
 
 // Sets default values
 AInventoryTut_Item::AInventoryTut_Item()
@@ -20,7 +21,11 @@ void AInventoryTut_Item::BeginPlay()
 	
 }
 
-void AInventoryTut_Item::Interact()
+void AInventoryTut_Item::Interact(AInventoryTut_PlayerCharacter* Character)
 {
+	if (Character)
+	{
+		Character->AddItemToInventoryidget(ItemData);
+	}
 	Destroy();
 }
