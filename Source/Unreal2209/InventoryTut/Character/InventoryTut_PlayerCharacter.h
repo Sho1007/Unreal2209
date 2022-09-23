@@ -20,11 +20,7 @@ public:
 	// Sets default values for this character's properties
 	AInventoryTut_PlayerCharacter();
 
-protected:
-	// Called when the game starts or when spawned
-	virtual void BeginPlay() override;
-
-public:	
+public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
@@ -32,8 +28,18 @@ public:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
 	UFUNCTION(Category = "TUTORIAL")
-	void AddItemToInventoryidget(FItemData ItemData);
+		void AddItemToInventoryidget(FItemData ItemData);
 
+protected:
+	// Called when the game starts or when spawned
+	virtual void BeginPlay() override;
+
+public:
+	UFUNCTION(BlueprintCallable, Category = "TUTORIAL")
+	void UseItem(TSubclassOf<class AInventoryTut_Item> ItemSubclass);
+
+	void AddHealth(float Value);
+	void RemoveHunger(float Value);
 
 private:
 	// Binded Function
@@ -53,4 +59,10 @@ private:
 	// HUD Widget Property
 	TSubclassOf<UInvTut_InterfaceWidget>	InterfaceClass;
 	UInvTut_InterfaceWidget*				InterfaceWidget;
+
+protected:
+	UPROPERTY(BlueprintReadWrite, Category = "TUTORIAL")
+	float Health;
+	UPROPERTY(BlueprintReadWrite, Category = "TUTORIAL")
+	float Hunger;
 };

@@ -21,7 +21,12 @@ class UNREAL2209_API UInvTut_Inventory_ItemWidget : public UUserWidget
 	GENERATED_BODY()
 
 public :
+	virtual void NativeConstruct() override;
+
 	void Init(FItemData Value);
+
+	UFUNCTION()
+	void OnItemButtonClicked();
 
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)

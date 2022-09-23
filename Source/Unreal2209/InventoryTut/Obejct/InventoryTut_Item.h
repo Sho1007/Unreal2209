@@ -46,6 +46,7 @@ private:
 
 public:
 	virtual void Interact(class AInventoryTut_PlayerCharacter* Character) override;
+	virtual void Use(AInventoryTut_PlayerCharacter* Character) override;
 
 	void SetItemData(FItemData Value) { ItemData = Value; }
 	FItemData GetItemData() const { return ItemData; }

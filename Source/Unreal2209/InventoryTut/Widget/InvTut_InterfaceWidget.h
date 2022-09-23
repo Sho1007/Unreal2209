@@ -17,7 +17,10 @@ UCLASS()
 class UNREAL2209_API UInvTut_InterfaceWidget : public UUserWidget
 {
 	GENERATED_BODY()
-	
+
+public:
+	virtual void NativeConstruct() override;
+
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
 	UWidgetSwitcher* WS_Interface;

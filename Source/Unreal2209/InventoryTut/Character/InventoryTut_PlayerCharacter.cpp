@@ -124,6 +124,29 @@ void AInventoryTut_PlayerCharacter::MoveRight(float InputAxis)
 	AddMovementInput(Direction, InputAxis);
 }
 
+void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> ItemSubclass)
+{
+	if (ItemSubclass)
+	{
+		if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+		{
+			Item->Use(this);
+		}
+	}
+}
+
+void AInventoryTut_PlayerCharacter::AddHealth(float Value)
+{
+	Health += Value;
+	UE_LOG(LogTemp, Warning, TEXT("Health Added : %f"), Health);
+}
+
+void AInventoryTut_PlayerCharacter::RemoveHunger(float Value)
+{
+	Hunger -= Value;
+	UE_LOG(LogTemp, Warning, TEXT("Hunger Removed : %f"), Hunger);
+}
+
 void AInventoryTut_PlayerCharacter::Interact()
 {
 	FVector Start = CameraComponent->GetComponentLocation();

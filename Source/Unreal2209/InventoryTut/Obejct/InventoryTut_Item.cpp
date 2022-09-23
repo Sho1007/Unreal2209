@@ -12,6 +12,8 @@ AInventoryTut_Item::AInventoryTut_Item()
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMeshComponent"));
 	RootComponent = ItemMesh;
+
+	ItemData.ItemClass = this->StaticClass();
 }
 
 // Called when the game starts or when spawned
@@ -28,4 +30,9 @@ void AInventoryTut_Item::Interact(AInventoryTut_PlayerCharacter* Character)
 		Character->AddItemToInventoryidget(ItemData);
 	}
 	Destroy();
+}
+
+void AInventoryTut_Item::Use(AInventoryTut_PlayerCharacter* Character)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Interface Is Overrided"));
 }

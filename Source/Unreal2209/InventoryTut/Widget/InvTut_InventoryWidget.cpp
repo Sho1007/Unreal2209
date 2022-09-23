@@ -2,6 +2,7 @@
 
 
 #include "./InvTut_InventoryWidget.h"
+#include "./InvTut_InterfaceWidget.h"
 
 UInvTut_InventoryWidget::UInvTut_InventoryWidget(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -11,12 +12,31 @@ UInvTut_InventoryWidget::UInvTut_InventoryWidget(const FObjectInitializer& Objec
 	{
 		ItemWidgetClass = Temp.Class;
 	}
+
+}
+
+void UInvTut_InventoryWidget::NativeConstruct()
+{
+	Super::NativeConstruct();
+
+	Init();
+}
+
+void UInvTut_InventoryWidget::Init()
+{
+	B_Close->OnClicked.AddDynamic(this, &UInvTut_InventoryWidget::OnCloseButtonClicked);
 }
 
 void UInvTut_InventoryWidget::AddItem(FItemData ItemData)
 {
 	UE_LOG(LogTemp, Warning, TEXT("cost : %f"), ItemData.ItemCost);
-	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(Gird_Inventory, ItemWidgetClass);
+	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(WB_Inventory, ItemWidgetClass);
 	ItemWidget->Init(ItemData);
-	Gird_Inventory->AddChild(ItemWidget);
+	WB_Inventory->AddChild(ItemWidget);
+}
+
+void UInvTut_InventoryWidget::OnCloseButtonClicked()
+{
+	if (IsValid(Parent))
+		Parent->ToggleSwitcherIndex(0);
 }
