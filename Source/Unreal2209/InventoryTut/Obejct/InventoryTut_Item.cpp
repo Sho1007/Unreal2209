@@ -34,5 +34,4 @@ void AInventoryTut_Item::Interact(AInventoryTut_PlayerCharacter* Character)
 
 void AInventoryTut_Item::Use(AInventoryTut_PlayerCharacter* Character)
 {
-	UE_LOG(LogTemp, Warning, TEXT("Interface Is Overrided"));
 }

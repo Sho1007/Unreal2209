@@ -1,5 +1,5 @@
 # 진행 중
-Inventory Tut. 12
+Inventory 13까지 했고 14 해야함
 
 # 해야할 것들
 ## Inventory
@@ -17,13 +17,16 @@ Inventory Tut. 12
 
 ## PlayerCharacter
 ### Add Function
-1. PlayerCharacterState 라는 Actor (혹은 Component)를 만들어서 State를 관리한다.
-    1. Actor Component와 그냥 Component의 차이 확인하기 (어떤걸 사용해서 구현할지 정해야하기 때문에)
-    2. Component에 PlayerState 라는 FStruct 만들기
-        * Health, Hunger, Temperature, 등등 필요한 변수와 그 변수의 Get, Set 구현
-    3. .. Health <= 0 이면 죽는다던가 하는 부가적 기능들 구현 (-> 이 참에 Respawn 혹은 죽은 이후에는 어떻게 처리할지 생각)
+* PlayerCharacterState 라는 Actor (혹은 Component)를 만들어서 State를 관리한다.
+    * [ ] 캐릭터 사망시 어떻게 처리할 것인가? (현재 Status Component에 bIsDead까지만 있음) (-> 이 참에 Respawn 혹은 죽은 이후에는 어떻게 처리할지 생각)
 
 # 완료한 것들
+1. PlayerCharacterState 라는 ActorComponent를 만들어서 관리한다.    
+    * Actor Component와 그냥 Component의 차이 확인하기 -> ActorComponent 을 사용하기로 정함 (추상적개념이기 때문에)
+    * Component에 PlayerState 라는 FStruct 만들기 -> FStruct 따로 만들 필요없이 그냥 PlayerCharacterStatus 라는 Component를 만들었다.
+    * CrossHairWidget을 HUDWidget으로 변경하여 거기에 Status를 표시하는 TextBlock을 생성
+    * HUDWidget과 CharacterStatusComponent를 PlayerCharacter를 매개체로 연결
+    
 
 # 깨달은 점
 1. Git 을 통해 버전 관리를 할 때는, 항상 visual studio project file 을 다시 generate 시켜줘야한다.
@@ -48,4 +51,26 @@ Inventory Tut. 12
     // 아래와 같이 사용
     MyObject->MyInterfaceMethod();
 ```
-5. 
+5. Component
+    1. ActorComponent
+        * 모든 컴포넌트들의 부모이다.
+        * 움직임, 인벤토리, 어트리뷰트 관리 및 기타 <B>비물리적 개념</B>과 같은 <B>추상적인 동작</B> 대부분에 유용
+        * Transform 이 없다. (즉, 이동 회전 등을 하지 않는다)
+    2. SceneComponent
+        * ActorComponent의 자손이다.
+        * Transform 을 포함하다. (위치, 이동, 회전 등의 역할이 추가)
+        * Geometry 가 없다. (visual, physics, collision 등을 하지 않는다.)
+    3. PrimitiveComponent
+        * SceneComponent의 자손이다.
+        * Geometry 를 포함한다. (시각 표현, 물리 법칙, 충돌 등의 역할이 추가된다.)
+    * 즉 Actor -> Scene -> Primitive 순의 상속관계이고, 상속될때마다 하나씩 기능이 추가된다.
+    * Actor (Component말고) 는 기본적으로 SceneComponent를 가지고 있고, 거기에 여러 컴포넌트들을 추가하여 만들어지는 컴포넌트의 집합체이다.
+
+6.  Timer 설정
+    * ex) GetWorld()->GetTimerManager().SetTimer(MyTimerHandler, this, &MyUObject::MyMemberMethod, 10.0f, true);
+    * 이 타이머를 가질 FTimerHandler, 실행하는 UObject, 실행하려고 하는 MemberMethod, 타이머 시간 (얼마 뒤에 실행할지), 반복여부, 첫 시작 시간 (안적으면 앞에 시간과 동일)
+
+7. LogUObjectBase: Error: 'this' pointer is invalid. 에러
+    * 정말 바보같은 에러다. 만들어져있지 않은 Object에 아마 MyObject.IsValidLowLevelFast()를 실행하면 뜰 것이다.
+    * 내 경우 BeginPlay에서 (아직 CreateWidget 하지 않은 )UUserWidget* 에 있는 함수를 사용하려다 자꾸 Access 에러가 떠서 위의 IsValid 함수를 사용했더니 발견되었다.
+    * 이 경우에는 해당 함수까지의 경로에 UE_LOG 를 찍어서 어디까지 정상적으로 들어가는지 판별하면 대충 에러의 원인이 보인다.

@@ -8,6 +8,7 @@
 #include "GameFramework/SpringArmComponent.h"
 #include "Camera/CameraComponent.h"
 #include "../Widget/InvTut_InterfaceWidget.h"
+#include "InvTut_CharacterStatusComponet.h"
 
 #include "InventoryTut_PlayerCharacter.generated.h"
 
@@ -48,6 +49,9 @@ private:
 	void Interact();
 	void ChangeUI();
 
+	UFUNCTION()
+	void UpdateHUD();
+
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere);
 	USpringArmComponent* SpringArmComponent;
@@ -55,14 +59,10 @@ private:
 	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere);
 	UCameraComponent* CameraComponent;
 
+	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere);
+	UInvTut_CharacterStatusComponet* StatusComponent;
 
 	// HUD Widget Property
 	TSubclassOf<UInvTut_InterfaceWidget>	InterfaceClass;
 	UInvTut_InterfaceWidget*				InterfaceWidget;
-
-protected:
-	UPROPERTY(BlueprintReadWrite, Category = "TUTORIAL")
-	float Health;
-	UPROPERTY(BlueprintReadWrite, Category = "TUTORIAL")
-	float Hunger;
 };

@@ -6,6 +6,7 @@
 #include "Blueprint/UserWidget.h"
 
 #include "InvTut_InventoryWidget.h"
+#include "InvTut_HUDWidget.h"
 #include "Components/WidgetSwitcher.h"
 
 #include "InvTut_InterfaceWidget.generated.h"
@@ -26,12 +27,13 @@ private:
 	UWidgetSwitcher* WS_Interface;
 
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
-	UUserWidget* W_CrossHair;
+	UInvTut_HUDWidget* W_HUD;
 
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
 	UInvTut_InventoryWidget* W_Inventory;
 
 public:
+	void UpdateHUD(float Health, float Hunger);
 	void ToggleSwitcherIndex(int index = -1);
 
 	UInvTut_InventoryWidget* GetInventoryWidget() const { return W_Inventory; }

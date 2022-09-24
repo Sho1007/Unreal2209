@@ -9,6 +9,12 @@ void UInvTut_InterfaceWidget::NativeConstruct()
 	W_Inventory->SetParent(this);
 }
 
+void UInvTut_InterfaceWidget::UpdateHUD(float Health, float Hunger)
+{
+	if (W_HUD->IsValidLowLevelFast())
+		W_HUD->UpdateStatus(Health, Hunger);
+}
+
 void UInvTut_InterfaceWidget::ToggleSwitcherIndex(int index)
 {
 	// index가 -1이 아니면 해당 인덱스로 Set

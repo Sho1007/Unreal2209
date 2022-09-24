@@ -22,6 +22,10 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 	else
 		return;
 
+	// Component Setting
+
+	StatusComponent = CreateDefaultSubobject<UInvTut_CharacterStatusComponet>(TEXT("StatusComponent"));
+
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComponent->bUsePawnControlRotation = true;
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponet"));
@@ -31,7 +35,7 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 
 
 
-	// Component Setting
+	
 	GetMesh()->SetRelativeLocationAndRotation(FVector(0, 0, -90.0f), FQuat(FRotator(0, -90.0f, 0)));
 
 
@@ -53,7 +57,7 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 void AInventoryTut_PlayerCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	// Create HUD Widget
 	if (IsLocallyControlled() && InterfaceClass != nullptr)
 	{
@@ -66,6 +70,12 @@ void AInventoryTut_PlayerCharacter::BeginPlay()
 				InterfaceWidget->AddToPlayerScreen();
 		}
 	}
+
+	// Update HUD
+	UpdateHUD();
+
+	// BindDelegate
+	StatusComponent->ChangeStatus.BindUFunction(this, FName("UpdateHUD"));
 }
 
 // Called every frame
@@ -137,14 +147,12 @@ void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> Item
 
 void AInventoryTut_PlayerCharacter::AddHealth(float Value)
 {
-	Health += Value;
-	UE_LOG(LogTemp, Warning, TEXT("Health Added : %f"), Health);
+	StatusComponent->AddHealth(Value);
 }
 
 void AInventoryTut_PlayerCharacter::RemoveHunger(float Value)
 {
-	Hunger -= Value;
-	UE_LOG(LogTemp, Warning, TEXT("Hunger Removed : %f"), Hunger);
+	StatusComponent->SubHunger(Value);
 }
 
 void AInventoryTut_PlayerCharacter::Interact()
@@ -168,5 +176,11 @@ void AInventoryTut_PlayerCharacter::Interact()
 void AInventoryTut_PlayerCharacter::ChangeUI()
 {
 	InterfaceWidget->ToggleSwitcherIndex();
+}
+
+void AInventoryTut_PlayerCharacter::UpdateHUD()
+{
+	if (InterfaceWidget->IsValidLowLevelFast())
+		InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
 }
 
