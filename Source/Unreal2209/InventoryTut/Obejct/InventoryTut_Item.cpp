@@ -9,6 +9,7 @@ AInventoryTut_Item::AInventoryTut_Item()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = false;
+	bReplicates = true;
 
 	ItemMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("ItemMeshComponent"));
 	RootComponent = ItemMesh;
@@ -25,11 +26,13 @@ void AInventoryTut_Item::BeginPlay()
 
 void AInventoryTut_Item::Interact(AInventoryTut_PlayerCharacter* Character)
 {
-	if (Character)
+	if (HasAuthority() && Character)
 	{
-		Character->AddItemToInventoryidget(ItemData);
+		Character->AddInventoryItem(ItemData);
+
+		Destroy();
 	}
-	Destroy();
+	
 }
 
 void AInventoryTut_Item::Use(AInventoryTut_PlayerCharacter* Character)

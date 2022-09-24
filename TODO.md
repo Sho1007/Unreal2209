@@ -1,5 +1,5 @@
 # 진행 중
-Inventory 13까지 했고 14 해야함
+Inventory14 -> 15
 
 # 해야할 것들
 ## Inventory
@@ -21,11 +21,14 @@ Inventory 13까지 했고 14 해야함
     * [ ] 캐릭터 사망시 어떻게 처리할 것인가? (현재 Status Component에 bIsDead까지만 있음) (-> 이 참에 Respawn 혹은 죽은 이후에는 어떻게 처리할지 생각)
 
 # 완료한 것들
-1. PlayerCharacterState 라는 ActorComponent를 만들어서 관리한다.    
+* PlayerCharacterState 라는 ActorComponent를 만들어서 관리한다.    
     * Actor Component와 그냥 Component의 차이 확인하기 -> ActorComponent 을 사용하기로 정함 (추상적개념이기 때문에)
     * Component에 PlayerState 라는 FStruct 만들기 -> FStruct 따로 만들 필요없이 그냥 PlayerCharacterStatus 라는 Component를 만들었다.
     * CrossHairWidget을 HUDWidget으로 변경하여 거기에 Status를 표시하는 TextBlock을 생성
     * HUDWidget과 CharacterStatusComponent를 PlayerCharacter를 매개체로 연결
+
+* Replicate
+    * Character 의 Interact() 를 Client에서도 사용 가능하게 수정함 (그런데 현재 서버에서 안됨)
     
 
 # 깨달은 점
@@ -74,3 +77,21 @@ Inventory 13까지 했고 14 해야함
     * 정말 바보같은 에러다. 만들어져있지 않은 Object에 아마 MyObject.IsValidLowLevelFast()를 실행하면 뜰 것이다.
     * 내 경우 BeginPlay에서 (아직 CreateWidget 하지 않은 )UUserWidget* 에 있는 함수를 사용하려다 자꾸 Access 에러가 떠서 위의 IsValid 함수를 사용했더니 발견되었다.
     * 이 경우에는 해당 함수까지의 경로에 UE_LOG 를 찍어서 어디까지 정상적으로 들어가는지 판별하면 대충 에러의 원인이 보인다.
+
+8. 배열에서 IsNotEmtpy() 를 표현하는 방법
+```c++
+if (MyArray.Num()) { }
+// 이렇게 하면 Num 이 0이면 false로 취급돼서 IsNotEmpty()와 같은 기능을 한다.
+```
+9. UPROPERTY 를 Replicate 하려면
+    1.  ```c++
+            // 일단 UPROPERTY에 ReplicatedUsing 지정자를 써야하고 
+            // = OnRep_Function 으로 함수를 지정해줘야한다.
+            UPROPERTY(ReplicatedUsing = OnRep_MyObject)
+            UMyObject MyObject;
+        ```
+    2.  ```c++
+            // 그에 맞는 UFUNCTION() OnRep 함수도 필요
+            UFUNCTION()
+            void OnRep_MyObejct();
+        ```

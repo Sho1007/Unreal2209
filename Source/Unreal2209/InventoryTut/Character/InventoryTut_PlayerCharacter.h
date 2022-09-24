@@ -21,45 +21,66 @@ public:
 	// Sets default values for this character's properties
 	AInventoryTut_PlayerCharacter();
 
-public:
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
-	UFUNCTION(Category = "TUTORIAL")
-		void AddItemToInventoryidget(FItemData ItemData);
-
 protected:
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override ;
+
 public:
+	void AddInventoryItem(FItemData ItemData);
+
 	UFUNCTION(BlueprintCallable, Category = "TUTORIAL")
 	void UseItem(TSubclassOf<class AInventoryTut_Item> ItemSubclass);
 
 	void AddHealth(float Value);
 	void RemoveHunger(float Value);
 
+protected:
+	UFUNCTION(Category = "TUTORIAL")
+	void AddItemToInventoryWidget(FItemData ItemData);
+
 private:
 	// Binded Function
 	void MoveForward(float InputAxis);
 	void MoveRight(float InputAxis);
+
 	void Interact();
+	void Interact(FVector Start, FVector End);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_Interact(FVector Start, FVector End);
+
 	void ChangeUI();
 
 	UFUNCTION()
 	void UpdateHUD();
 
+	// Replicate
+	UPROPERTY(ReplicatedUsing = OnRep_InventoryItems, meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
+	TArray<FItemData> InventoryItems;
+
+	UFUNCTION()
+	void OnRep_InventoryItems();
+
+
+
+
+
 private:
-	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere);
+	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere)
 	USpringArmComponent* SpringArmComponent;
 
-	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere);
+	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere)
 	UCameraComponent* CameraComponent;
 
-	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere);
+	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere)
 	UInvTut_CharacterStatusComponet* StatusComponent;
 
 	// HUD Widget Property

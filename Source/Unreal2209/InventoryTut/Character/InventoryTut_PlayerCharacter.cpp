@@ -4,6 +4,7 @@
 #include "./InventoryTut_PlayerCharacter.h"
 #include "../Interface/InteractableInterface.h"
 #include "./InvTut_PlayerController.h"
+#include "Net/UnrealNetwork.h"
 
 
 // Sets default values
@@ -78,6 +79,22 @@ void AInventoryTut_PlayerCharacter::BeginPlay()
 	StatusComponent->ChangeStatus.BindUFunction(this, FName("UpdateHUD"));
 }
 
+void AInventoryTut_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AInventoryTut_PlayerCharacter, InventoryItems, COND_OwnerOnly);
+}
+
+void AInventoryTut_PlayerCharacter::AddInventoryItem(FItemData ItemData)
+{
+	if (HasAuthority())
+	{
+		InventoryItems.Add(ItemData);
+	}
+	
+}
+
 // Called every frame
 void AInventoryTut_PlayerCharacter::Tick(float DeltaTime)
 {
@@ -101,7 +118,7 @@ void AInventoryTut_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* P
 	PlayerInputComponent->BindKey(EKeys::I, EInputEvent::IE_Pressed, this, &AInventoryTut_PlayerCharacter::ChangeUI);
 }
 
-void AInventoryTut_PlayerCharacter::AddItemToInventoryidget(FItemData ItemData)
+void AInventoryTut_PlayerCharacter::AddItemToInventoryWidget(FItemData ItemData)
 {
 	InterfaceWidget->GetInventoryWidget()->AddItem(ItemData);
 }
@@ -160,6 +177,18 @@ void AInventoryTut_PlayerCharacter::Interact()
 	FVector Start = CameraComponent->GetComponentLocation();
 	FVector End = Start + (CameraComponent->GetForwardVector() * 1000.0f);
 
+	if (HasAuthority())
+	{
+		Interact(Start, End);
+	}
+	else
+	{
+		Server_Interact(Start, End);
+	}
+}
+
+void AInventoryTut_PlayerCharacter::Interact(FVector Start, FVector End)
+{
 	FHitResult HitResult;
 	FCollisionQueryParams Params;
 	Params.AddIgnoredActor(this);
@@ -173,6 +202,18 @@ void AInventoryTut_PlayerCharacter::Interact()
 	}
 }
 
+bool AInventoryTut_PlayerCharacter::Server_Interact_Validate(FVector Start, FVector End)
+{
+	return true;
+}
+
+void AInventoryTut_PlayerCharacter::Server_Interact_Implementation(FVector Start, FVector End)
+{
+	Interact(Start, End);
+}
+
+
+
 void AInventoryTut_PlayerCharacter::ChangeUI()
 {
 	InterfaceWidget->ToggleSwitcherIndex();
@@ -182,5 +223,13 @@ void AInventoryTut_PlayerCharacter::UpdateHUD()
 {
 	if (InterfaceWidget->IsValidLowLevelFast())
 		InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
+}
+
+void AInventoryTut_PlayerCharacter::OnRep_InventoryItems()
+{
+	if (InventoryItems.Num())
+	{
+		AddItemToInventoryWidget(InventoryItems[InventoryItems.Num() - 1]);
+	}
 }
 
