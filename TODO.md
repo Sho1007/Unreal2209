@@ -1,5 +1,6 @@
 # 진행 중
-Inventory14 -> 15 ing
+(언리얼 강의) https://youtu.be/qJn5vnNWWLw?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE&t=106   
+(운영체제 강의) https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 
 # 해야할 것들
 ## Inventory
