@@ -1,5 +1,5 @@
 # 진행 중
-Inventory14 -> 15
+Inventory14 -> 15 ing
 
 # 해야할 것들
 ## Inventory
