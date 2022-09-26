@@ -79,6 +79,9 @@ void AInventoryTut_PlayerCharacter::BeginPlay()
 
 	// BindDelegate
 	StatusComponent->ChangeStatus.BindUFunction(this, FName("UpdateHUD"));
+
+	if (IsLocallyControlled())
+		InterfaceWidget->GetInventoryWidget()->InitGrid(5, 4);
 }
 
 void AInventoryTut_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
@@ -86,17 +89,6 @@ void AInventoryTut_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeP
 	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
 
 	DOREPLIFETIME_CONDITION(AInventoryTut_PlayerCharacter, InventoryItems, COND_OwnerOnly);
-}
-
-void AInventoryTut_PlayerCharacter::AddInventoryItem(FItemData ItemData)
-{
-	if (HasAuthority())
-	{
-		InventoryItems.Add(ItemData);
-		if (IsLocallyControlled())
-			OnRep_InventoryItems();
-	}
-	
 }
 
 // Called every frame
@@ -120,11 +112,6 @@ void AInventoryTut_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* P
 	PlayerInputComponent->BindAction("Interact", EInputEvent::IE_Pressed, this, &AInventoryTut_PlayerCharacter::Interact);
 
 	PlayerInputComponent->BindKey(EKeys::I, EInputEvent::IE_Pressed, this, &AInventoryTut_PlayerCharacter::ChangeUI);
-}
-
-void AInventoryTut_PlayerCharacter::AddItemToInventoryWidget(FItemData ItemData)
-{
-	InterfaceWidget->GetInventoryWidget()->AddItem(ItemData);
 }
 
 void AInventoryTut_PlayerCharacter::MoveForward(float InputAxis)
@@ -181,19 +168,18 @@ void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> Item
 
 void AInventoryTut_PlayerCharacter::Server_UseItem_Implementation(TSubclassOf<AInventoryTut_Item> ItemSubclass)
 {
-	UseItem(ItemSubclass);
-}
-
-bool AInventoryTut_PlayerCharacter::Server_UseItem_Validate(TSubclassOf<AInventoryTut_Item> ItemSubclass)
-{
 	for (FItemData& ItemData : InventoryItems)
 	{
 		if (ItemData.ItemClass == ItemSubclass)
 		{
-			return true	;
+			UseItem(ItemSubclass);
 		}
 	}
-	return false;
+}
+
+bool AInventoryTut_PlayerCharacter::Server_UseItem_Validate(TSubclassOf<AInventoryTut_Item> ItemSubclass)
+{
+	return true;
 }
 
 void AInventoryTut_PlayerCharacter::AddHealth(float Value)
@@ -259,6 +245,22 @@ void AInventoryTut_PlayerCharacter::UpdateHUD()
 	if (IsLocallyControlled())
 		if (InterfaceWidget->IsValidLowLevelFast())
 			InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
+}
+
+void AInventoryTut_PlayerCharacter::AddInventoryItem(FItemData ItemData)
+{
+	if (HasAuthority())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("AddInventoryItem"));
+		InventoryItems.Add(ItemData);
+		if (IsLocallyControlled())
+			OnRep_InventoryItems();
+	}
+}
+
+void AInventoryTut_PlayerCharacter::AddItemToInventoryWidget(FItemData ItemData)
+{
+	InterfaceWidget->GetInventoryWidget()->AddItem(ItemData);
 }
 
 void AInventoryTut_PlayerCharacter::OnRep_InventoryItems()

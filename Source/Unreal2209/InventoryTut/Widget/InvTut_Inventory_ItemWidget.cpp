@@ -8,7 +8,13 @@ void UInvTut_Inventory_ItemWidget::Init(FItemData Value)
 {
 	ItemData = Value;
 
-	I_Item->SetBrushFromTexture(ItemData.ItemImage);
+	if (IsValid(ItemData.ItemClass) && IsValid(ItemData.ItemImage))
+	{
+		I_Item->SetOpacity(1.0f);
+		I_Item->SetBrushFromTexture(ItemData.ItemImage);
+
+		B_Item->SetVisibility(ESlateVisibility::Visible);
+	}
 }
 
 void UInvTut_Inventory_ItemWidget::OnItemButtonClicked()

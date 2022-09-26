@@ -12,7 +12,6 @@ UInvTut_InventoryWidget::UInvTut_InventoryWidget(const FObjectInitializer& Objec
 	{
 		ItemWidgetClass = Temp.Class;
 	}
-
 }
 
 void UInvTut_InventoryWidget::NativeConstruct()
@@ -27,12 +26,44 @@ void UInvTut_InventoryWidget::Init()
 	B_Close->OnClicked.AddDynamic(this, &UInvTut_InventoryWidget::OnCloseButtonClicked);
 }
 
+void UInvTut_InventoryWidget::InitGrid(int Row, int Column)
+{
+	MaxRow = Row;
+	MaxColumn = Column;
+
+	for (CurrentRow = 0; CurrentRow < MaxRow; ++CurrentRow)
+	{
+		for (CurrentColumn = 0; CurrentColumn < MaxColumn; ++CurrentColumn)
+		{
+			AddItem(FItemData(), CurrentRow, CurrentColumn);
+		}
+	}
+
+	CurrentRow = 0;
+	CurrentColumn = 0;
+}
+
 void UInvTut_InventoryWidget::AddItem(FItemData ItemData)
 {
-	UE_LOG(LogTemp, Warning, TEXT("cost : %f"), ItemData.ItemCost);
-	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(WB_Inventory, ItemWidgetClass);
+	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(UGP_Inventory, ItemWidgetClass);
 	ItemWidget->Init(ItemData);
-	WB_Inventory->AddChild(ItemWidget);
+	//WB_Inventory->AddChild(ItemWidget);
+
+	UGP_Inventory->AddChildToUniformGrid(ItemWidget, CurrentRow, CurrentColumn++);
+	if (CurrentColumn >= MaxColumn)
+	{
+		CurrentColumn = 0;
+		CurrentRow++;
+	}
+}
+
+void UInvTut_InventoryWidget::AddItem(FItemData ItemData, int Row, int Column)
+{
+	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(UGP_Inventory, ItemWidgetClass);
+	ItemWidget->Init(ItemData);
+	//WB_Inventory->AddChild(ItemWidget);
+
+	UGP_Inventory->AddChildToUniformGrid(ItemWidget, Row, Column);
 }
 
 void UInvTut_InventoryWidget::OnCloseButtonClicked()

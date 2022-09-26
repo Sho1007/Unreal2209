@@ -1,5 +1,5 @@
 # 진행 중
-(언리얼 강의) https://youtu.be/YCWbAxcuQoA?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE&t=295
+(언리얼 강의) https://youtu.be/pH7CmzquvL0?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE&t=1
 (운영체제 강의) https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 
 # 해야할 것들
@@ -115,3 +115,7 @@ if (MyArray.Num()) { }
             // 해당 컴포넌트를 소유하는 actor class의 contructor 에서
             MyComponent->SetIsReplicated(true);
         ```
+10. Replicate 관련 오류
+    * InterfaceWidget 은 IsLocallyControlled 인 캐릭터만 생성
+    * AddItem (InterfaceWidget 건드리는 함수) 를 실행할 때 IsLocallyControlled 체크를 안해서 계속 튕김 (InterfaceWidget이 생성되지 않은 다른 Actor들에서도 계속 접근하려고 했었던 것)
+    * 항상 IsLocallyControlled 와 HasAuthority 를 잘 생각해서 코드를 짜야겠다.

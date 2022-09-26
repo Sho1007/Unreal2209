@@ -9,6 +9,7 @@
 #include "Components/UniformGridPanel.h"
 #include "Components/WrapBox.h"
 #include "Components/Button.h"
+#include "Components/UniformGridPanel.h"
 
 #include "InvTut_InventoryWidget.generated.h"
 
@@ -26,8 +27,10 @@ public:
 	virtual void NativeConstruct() override;
 
 	void Init();
+	void InitGrid(int Row, int Column);
 	
 	void AddItem(FItemData ItemData);
+	void AddItem(FItemData ItemData, int Row, int Column);
 
 	void SetParent(class UInvTut_InterfaceWidget* Value) { Parent = Value; }
 
@@ -37,10 +40,22 @@ public:
 protected:
 
 private:
-	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
+	/*
+	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite, Category = "InvTut")
 	UWrapBox* WB_Inventory;
-	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
+	*/
+	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite, Category = "InvTut")
+	UUniformGridPanel* UGP_Inventory;
+	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite, Category = "InvTut")
 	UButton* B_Close;
+
+	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite, Category = "InvTut")
+	int CurrentRow;
+	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite, Category = "InvTut")
+	int CurrentColumn;
+
+	int MaxRow;
+	int MaxColumn;
 
 	class UInvTut_InterfaceWidget* Parent;
 

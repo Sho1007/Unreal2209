@@ -14,8 +14,14 @@ struct FItemData
 {
 	GENERATED_USTRUCT_BODY()
 public:
+	FItemData()
+		: ItemClass(nullptr), ItemImage(nullptr), ItemCost(0.0f)
+	{
+
+	}
+
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		TSubclassOf<class AInventoryTut_Item> ItemClass;
+		TSubclassOf<class AInventoryTut_Item> ItemClass = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
 		UTexture2D* ItemImage;
