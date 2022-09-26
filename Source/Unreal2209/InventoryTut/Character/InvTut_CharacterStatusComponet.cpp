@@ -2,6 +2,7 @@
 
 
 #include "./InvTut_CharacterStatusComponet.h"
+#include "Net/UnrealNetwork.h"
 
 // Sets default values for this component's properties
 UInvTut_CharacterStatusComponet::UInvTut_CharacterStatusComponet()
@@ -27,6 +28,14 @@ void UInvTut_CharacterStatusComponet::BeginPlay()
 
 	// ...
 	
+}
+
+void UInvTut_CharacterStatusComponet::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME(UInvTut_CharacterStatusComponet, Health);
+	DOREPLIFETIME(UInvTut_CharacterStatusComponet, Hunger);
 }
 
 
@@ -58,7 +67,6 @@ void UInvTut_CharacterStatusComponet::SetHealth(float Value)
 void UInvTut_CharacterStatusComponet::AddHealth(float Value)
 {
 	if (Value <= 0) return;
-
 	float TotalHealth = Health + Value;
 
 	if (TotalHealth > MaxHealth)
@@ -127,6 +135,11 @@ void UInvTut_CharacterStatusComponet::IncreaseHunger()
 	Hunger += 10.0f;
 	UE_LOG(LogTemp, Warning, TEXT("Hunger : %f"), Hunger);
 
+	if (ChangeStatus.IsBound()) ChangeStatus.Execute();
+}
+
+void UInvTut_CharacterStatusComponet::OnRep_Status()
+{
 	if (ChangeStatus.IsBound()) ChangeStatus.Execute();
 }
 

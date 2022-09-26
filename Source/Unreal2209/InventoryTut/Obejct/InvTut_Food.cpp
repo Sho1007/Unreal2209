@@ -11,6 +11,7 @@ AInvTut_Food::AInvTut_Food()
 
 void AInvTut_Food::Use(AInventoryTut_PlayerCharacter* Character)
 {
+	UE_LOG(LogTemp, Warning, TEXT("Item->Use"));
 	if (Character)
 	{
 		Character->RemoveHunger(HungerValue);

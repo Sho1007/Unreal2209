@@ -26,6 +26,8 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 	// Component Setting
 
 	StatusComponent = CreateDefaultSubobject<UInvTut_CharacterStatusComponet>(TEXT("StatusComponent"));
+	if (!StatusComponent) return;
+	StatusComponent->SetIsReplicated(true);
 
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComponent->bUsePawnControlRotation = true;
@@ -33,7 +35,7 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 
 	CameraComponent->SetupAttachment(SpringArmComponent);
 	SpringArmComponent->SetupAttachment(GetMesh());
-
+		
 
 
 	
@@ -60,7 +62,7 @@ void AInventoryTut_PlayerCharacter::BeginPlay()
 	Super::BeginPlay();
 
 	// Create HUD Widget
-	if (IsLocallyControlled() && InterfaceClass != nullptr)
+	if (IsLocallyControlled() && InterfaceClass)
 	{
 		AInvTut_PlayerController* PC = GetController<AInvTut_PlayerController>();
 		if (IsValid(PC))
@@ -91,6 +93,8 @@ void AInventoryTut_PlayerCharacter::AddInventoryItem(FItemData ItemData)
 	if (HasAuthority())
 	{
 		InventoryItems.Add(ItemData);
+		if (IsLocallyControlled())
+			OnRep_InventoryItems();
 	}
 	
 }
@@ -155,16 +159,47 @@ void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> Item
 {
 	if (ItemSubclass)
 	{
-		if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+		if (HasAuthority())
 		{
-			Item->Use(this);
+			if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+			{
+				Item->Use(this);
+				UpdateHUD();
+			}
+		}
+		else
+		{
+			if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+			{
+				Item->Use(this);
+			}
+			Server_UseItem(ItemSubclass);
+		}
+			
+	}
+}
+
+void AInventoryTut_PlayerCharacter::Server_UseItem_Implementation(TSubclassOf<AInventoryTut_Item> ItemSubclass)
+{
+	UseItem(ItemSubclass);
+}
+
+bool AInventoryTut_PlayerCharacter::Server_UseItem_Validate(TSubclassOf<AInventoryTut_Item> ItemSubclass)
+{
+	for (FItemData& ItemData : InventoryItems)
+	{
+		if (ItemData.ItemClass == ItemSubclass)
+		{
+			return true	;
 		}
 	}
+	return false;
 }
 
 void AInventoryTut_PlayerCharacter::AddHealth(float Value)
 {
-	StatusComponent->AddHealth(Value);
+	if (HasAuthority())
+		StatusComponent->AddHealth(Value);
 }
 
 void AInventoryTut_PlayerCharacter::RemoveHunger(float Value)
@@ -221,8 +256,9 @@ void AInventoryTut_PlayerCharacter::ChangeUI()
 
 void AInventoryTut_PlayerCharacter::UpdateHUD()
 {
-	if (InterfaceWidget->IsValidLowLevelFast())
-		InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
+	if (IsLocallyControlled())
+		if (InterfaceWidget->IsValidLowLevelFast())
+			InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
 }
 
 void AInventoryTut_PlayerCharacter::OnRep_InventoryItems()

@@ -23,6 +23,8 @@ protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
 
+	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
+
 public:	
 	// Called every frame
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
@@ -40,15 +42,19 @@ public:
 
 private:
 	void IncreaseHunger();
+
+	UFUNCTION()
+	void OnRep_Status();
+
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
 	bool bIsDead;
-	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(ReplicatedUsing = OnRep_Status, meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
 	float Health;
 	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
 	float MaxHealth;
 
-	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
+	UPROPERTY(ReplicatedUsing = OnRep_Status, meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
 	float Hunger;
 	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
 	float MaxHunger;

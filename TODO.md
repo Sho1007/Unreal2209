@@ -1,5 +1,5 @@
 # 진행 중
-(언리얼 강의) https://youtu.be/qJn5vnNWWLw?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE&t=106   
+(언리얼 강의) https://youtu.be/YCWbAxcuQoA?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE&t=295
 (운영체제 강의) https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 
 # 해야할 것들
@@ -78,21 +78,40 @@
     * 정말 바보같은 에러다. 만들어져있지 않은 Object에 아마 MyObject.IsValidLowLevelFast()를 실행하면 뜰 것이다.
     * 내 경우 BeginPlay에서 (아직 CreateWidget 하지 않은 )UUserWidget* 에 있는 함수를 사용하려다 자꾸 Access 에러가 떠서 위의 IsValid 함수를 사용했더니 발견되었다.
     * 이 경우에는 해당 함수까지의 경로에 UE_LOG 를 찍어서 어디까지 정상적으로 들어가는지 판별하면 대충 에러의 원인이 보인다.
+    * (220926) 똑같은 실수를 또 했다.
+        * Replicate 적용 중 Item 으로 Status가 변경 될 시 UpdateHUD를 통해 HUD에 있는 status 수치를 변경했다.
+        * 근데 이 HUD 는 IsLocallyControlled 일 때만 생성되도록 했음 (하지만 멍청하게도 UpdateHUD는 모든 client에서 실행된다는걸 까먹음)
+        * 계속 'this'pointer is invalid 에러가 떴었다.
+        * UpdateHUD 를 IsLocallyControlled 일때만 실행하도록 수정하니 에러 사라짐
+        * Replicate 할 때는 이게 어디서 실행될 지 꼭 생각하면서 함수를 짜야겠다.
 
 8. 배열에서 IsNotEmtpy() 를 표현하는 방법
 ```c++
 if (MyArray.Num()) { }
 // 이렇게 하면 Num 이 0이면 false로 취급돼서 IsNotEmpty()와 같은 기능을 한다.
 ```
-9. UPROPERTY 를 Replicate 하려면
-    1.  ```c++
-            // 일단 UPROPERTY에 ReplicatedUsing 지정자를 써야하고 
-            // = OnRep_Function 으로 함수를 지정해줘야한다.
-            UPROPERTY(ReplicatedUsing = OnRep_MyObject)
-            UMyObject MyObject;
+9. Replicate
+    1. UPROPERTY
+        ```c++
+        // MyActor.h
+            UPROPERTY(Replicated) 
+            UMyProperty MyProperty;
+            // 또는 아래와 같이 선언 후
+            UPROPERTY(ReplicatedUsing = OnRep_MyProperty)
+            UMyProperty MyProperty;
+
+            // 해당 변수가 Replicate 되었을 때 처리할 기능을 아래의 함수에 구현해주면 된다.
+            void OnRep_MyProperty();
+        // MyActor.cpp
+            void AInventoryTut_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+            {
+                DOREPLIFETIME(AMyActor, MyProperty);
+                // 또는 특정 조건으로 Replicate 시키고 싶다면
+                DOREPLIFETIME_COND(AMyActor, MyProperty, /* 특정 컨디션*/);
+            }
         ```
-    2.  ```c++
-            // 그에 맞는 UFUNCTION() OnRep 함수도 필요
-            UFUNCTION()
-            void OnRep_MyObejct();
+    2. UComponent
+        ``` c++
+            // 해당 컴포넌트를 소유하는 actor class의 contructor 에서
+            MyComponent->SetIsReplicated(true);
         ```

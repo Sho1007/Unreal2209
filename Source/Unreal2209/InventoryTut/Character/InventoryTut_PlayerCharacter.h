@@ -37,7 +37,10 @@ public:
 	void AddInventoryItem(FItemData ItemData);
 
 	UFUNCTION(BlueprintCallable, Category = "TUTORIAL")
-	void UseItem(TSubclassOf<class AInventoryTut_Item> ItemSubclass);
+	void UseItem(TSubclassOf<AInventoryTut_Item> ItemSubclass);
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_UseItem(TSubclassOf<AInventoryTut_Item> ItemSubclass);
 
 	void AddHealth(float Value);
 	void RemoveHunger(float Value);
