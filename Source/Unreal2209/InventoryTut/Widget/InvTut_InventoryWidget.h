@@ -13,6 +13,8 @@
 
 #include "InvTut_InventoryWidget.generated.h"
 
+DECLARE_DELEGATE(FInvTut_Inventory_DeleSingle);
+
 /**
  * 
  */
@@ -26,8 +28,11 @@ public:
 
 	virtual void NativeConstruct() override;
 
+	FInvTut_Inventory_DeleSingle RemoveArray;
+
 	void Init();
 	void InitGrid(int Row, int Column);
+	void InitItem();
 	
 	void AddItem(const FItemData* ItemData);
 	void AddItem(const FItemData* ItemData, int Row, int Column);
@@ -35,7 +40,6 @@ public:
 	void SetParent(class UInvTut_InterfaceWidget* Value) { Parent = Value; }
 
 	void UpdateWidget(const TArray<FItemData>& NewInventoryItems);
-	void RemoveItemWidget(FItemData ItemData);
 
 	UFUNCTION()
 	void OnCloseButtonClicked();

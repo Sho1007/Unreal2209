@@ -47,8 +47,6 @@ public:
 
 protected:
 	UFUNCTION(Category = "TUTORIAL")
-	void AddItemToInventoryWidget(FItemData& ItemData);
-	UFUNCTION(Category = "TUTORIAL")
 	void UpdateInventoryWidget();
 
 private:
@@ -67,22 +65,12 @@ private:
 	UFUNCTION()
 	void UpdateHUD();
 
-	void RemoveItem(FItemData Item);
-
-	UFUNCTION(Client, Reliable)
-	void Client_RemoveItem(FItemData Item);
-
 	// Replicate
 	UPROPERTY(ReplicatedUsing = OnRep_InventoryItems, meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)
 	TArray<FItemData> InventoryItems;
 
 	UFUNCTION()
 	void OnRep_InventoryItems();
-
-
-
-
-
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true), EditAnywhere)
 	USpringArmComponent* SpringArmComponent;

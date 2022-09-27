@@ -43,17 +43,33 @@ void UInvTut_InventoryWidget::InitGrid(int Row, int Column)
 	CurrentColumn = 0;
 }
 
-void UInvTut_InventoryWidget::AddItem(const FItemData* ItemData)
+void UInvTut_InventoryWidget::InitItem()
 {
 	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(UGP_Inventory, ItemWidgetClass);
-	ItemWidget->Init(ItemData);
-	//WB_Inventory->AddChild(ItemWidget);
-
+	ItemWidget->Init(nullptr);
 	UGP_Inventory->AddChildToUniformGrid(ItemWidget, CurrentRow, CurrentColumn++);
 	if (CurrentColumn >= MaxColumn)
 	{
 		CurrentColumn = 0;
 		CurrentRow++;
+	}
+}
+
+void UInvTut_InventoryWidget::AddItem(const FItemData* ItemData)
+{
+	TArray<UWidget*> Children = UGP_Inventory->GetAllChildren();
+
+	for (UWidget* Child : Children)
+	{
+		UInvTut_Inventory_ItemWidget* ItemWidget = Cast<UInvTut_Inventory_ItemWidget>(Child);
+		if (ItemWidget)
+		{
+			if (ItemWidget->GetItemData() == nullptr)
+			{
+				ItemWidget->Init(ItemData);
+				break;
+			}
+		}
 	}
 }
 
@@ -69,10 +85,34 @@ void UInvTut_InventoryWidget::AddItem(const FItemData* ItemData, int Row, int Co
 void UInvTut_InventoryWidget::UpdateWidget(const TArray<FItemData>& NewInventoryItems)
 {
 	TArray<UWidget*> Children = UGP_Inventory->GetAllChildren();
+
+	for (UWidget* Child : Children)
+	{
+		UInvTut_Inventory_ItemWidget* ItemWidget = Cast<UInvTut_Inventory_ItemWidget>(Child);
+		if (ItemWidget)
+		{
+			if (ItemWidget->GetItemData() == nullptr) continue;
+
+			bool bIsRemain = false;
+			for (int i = 0; i < NewInventoryItems.Num(); ++i)
+			{
+				if (ItemWidget->GetItemData()->ItemClass == NewInventoryItems[i].ItemClass)
+				{
+					bIsRemain = true;
+					ItemWidget->Update();
+					break;
+				}
+			}
+
+			//if (!bIsRemain)
+			//	ItemWidget->Init(nullptr);
+		}
+		
+	}
+
 	for (int i = 0; i < NewInventoryItems.Num(); ++i)
 	{
-		bool bIsHere = false;
-
+		bool bIsCreated = false;
 		for (UWidget* Child : Children)
 		{
 			UInvTut_Inventory_ItemWidget* ItemWidget = Cast<UInvTut_Inventory_ItemWidget>(Child);
@@ -82,38 +122,16 @@ void UInvTut_InventoryWidget::UpdateWidget(const TArray<FItemData>& NewInventory
 
 				if (ItemWidget->GetItemData()->ItemClass == NewInventoryItems[i].ItemClass)
 				{
-					ItemWidget->Update();
-					bIsHere = true;
+					bIsCreated = true;
 					break;
 				}
 			}
 		}
 
-		if (!bIsHere)
+		if (!bIsCreated)
 		{
 			// Create Widget
 			AddItem(&NewInventoryItems[i]);
-		}
-	}
-}
-
-void UInvTut_InventoryWidget::RemoveItemWidget(FItemData ItemData)
-{
-	TArray<UWidget*> Children = UGP_Inventory->GetAllChildren();
-
-	for (UWidget* Child : Children)
-	{
-		UInvTut_Inventory_ItemWidget* ItemWidget = Cast<UInvTut_Inventory_ItemWidget>(Child);
-		if (ItemWidget)
-		{
-			if (ItemWidget->GetItemData() == nullptr) continue;
-
-			if ((ItemWidget->GetItemData()->ItemClass == ItemData.ItemClass) && (ItemWidget->GetItemData()->StackCount == 0))
-			{
-				// Remove (함수 접근해서 destruct 해버리면 반환되기 전에 삭제돼서 오류뜰 것 같음)
-				ItemWidget->RemoveFromParent();
-				//ItemWidget->Destruct();
-			}
 		}
 	}
 }

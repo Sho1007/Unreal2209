@@ -2,6 +2,8 @@
 (언리얼 강의) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
 (운영체제 강의) https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 
+아이템 삭제 (ItemWidget 을 nullptr 로 초기화) 시키면 한칸씩 당겨짐.. 왜? 
+
 # 해야할 것들
 ## Inventory
 ### Add Function

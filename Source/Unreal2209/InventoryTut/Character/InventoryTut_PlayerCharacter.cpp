@@ -6,6 +6,7 @@
 #include "./InvTut_PlayerController.h"
 #include "Net/UnrealNetwork.h"
 
+#pragma region Init
 
 // Sets default values
 AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
@@ -81,14 +82,9 @@ void AInventoryTut_PlayerCharacter::BeginPlay()
 	StatusComponent->ChangeStatus.BindUFunction(this, FName("UpdateHUD"));
 
 	if (IsLocallyControlled())
+	{
 		InterfaceWidget->GetInventoryWidget()->InitGrid(5, 4);
-}
-
-void AInventoryTut_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-
-	DOREPLIFETIME_CONDITION(AInventoryTut_PlayerCharacter, InventoryItems, COND_OwnerOnly);
+	}	
 }
 
 // Called every frame
@@ -96,6 +92,13 @@ void AInventoryTut_PlayerCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+}
+
+void AInventoryTut_PlayerCharacter::GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const
+{
+	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+
+	DOREPLIFETIME_CONDITION(AInventoryTut_PlayerCharacter, InventoryItems, COND_OwnerOnly);
 }
 
 // Called to bind functionality to input
@@ -113,6 +116,11 @@ void AInventoryTut_PlayerCharacter::SetupPlayerInputComponent(UInputComponent* P
 
 	PlayerInputComponent->BindKey(EKeys::I, EInputEvent::IE_Pressed, this, &AInventoryTut_PlayerCharacter::ChangeUI);
 }
+
+#pragma endregion
+
+#pragma region MoveSetup
+
 
 void AInventoryTut_PlayerCharacter::MoveForward(float InputAxis)
 {
@@ -142,58 +150,9 @@ void AInventoryTut_PlayerCharacter::MoveRight(float InputAxis)
 	AddMovementInput(Direction, InputAxis);
 }
 
-void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> ItemSubclass)
-{
-	if (ItemSubclass)
-	{
-		if (HasAuthority())
-		{
-			for (FItemData& ItemData : InventoryItems)
-			{
-				if (ItemData.ItemClass == ItemSubclass)
-				{
-					if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
-					{
-						ItemData.StackCount--;
-						Item->Use(this);
-						if (ItemData.StackCount == 0)
-							RemoveItem(ItemData);
-						UpdateHUD();
-						break;
-					}
-					
-				}
-			}
-			if (IsLocallyControlled())
-				OnRep_InventoryItems();
-		}
-		else
-		{
-			if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
-			{
-				Item->Use(this);
-			}
-			Server_UseItem(ItemSubclass);
-		}
-			
-	}
-}
+#pragma endregion
 
-void AInventoryTut_PlayerCharacter::Server_UseItem_Implementation(TSubclassOf<AInventoryTut_Item> ItemSubclass)
-{
-	for (FItemData& ItemData : InventoryItems)
-	{
-		if (ItemData.ItemClass == ItemSubclass)
-		{
-			UseItem(ItemSubclass);
-		}
-	}
-}
 
-bool AInventoryTut_PlayerCharacter::Server_UseItem_Validate(TSubclassOf<AInventoryTut_Item> ItemSubclass)
-{
-	return true;
-}
 
 void AInventoryTut_PlayerCharacter::AddHealth(float Value)
 {
@@ -246,8 +205,6 @@ void AInventoryTut_PlayerCharacter::Server_Interact_Implementation(FVector Start
 	Interact(Start, End);
 }
 
-
-
 void AInventoryTut_PlayerCharacter::ChangeUI()
 {
 	InterfaceWidget->ToggleSwitcherIndex();
@@ -260,17 +217,90 @@ void AInventoryTut_PlayerCharacter::UpdateHUD()
 			InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
 }
 
-void AInventoryTut_PlayerCharacter::RemoveItem(FItemData Item)
-{
-	if (HasAuthority())
-		Client_RemoveItem(Item);
+#pragma region InventoryComponent
 
-	InterfaceWidget->GetInventoryWidget()->RemoveItemWidget(Item);
+void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> ItemSubclass)
+{
+	if (ItemSubclass)
+	{
+		if (HasAuthority())
+		{
+			// Use Item
+			
+			// Check Has Item
+			for (int i = 0; i < InventoryItems.Num(); ++i)
+			{
+				if (InventoryItems[i].ItemClass == ItemSubclass)
+				{
+					if (AInventoryTut_Item* Item = Cast<AInventoryTut_Item>(ItemSubclass->GetDefaultObject()))
+					{
+						InventoryItems[i].StackCount--;
+						Item->Use(this);
+						if (InventoryItems[i].StackCount == 0)
+							InventoryItems.RemoveAt(i);
+
+						break;
+					}
+				}
+			}
+			if (IsLocallyControlled())
+			{
+				// OnRep이 일어나지 않으므로 따로 실행해줘야함
+
+				// 1. Status OnRep
+				UpdateHUD();
+
+				// 2. Inventory OnRep
+				OnRep_InventoryItems();
+			}
+		}
+		else
+		{
+			Server_UseItem(ItemSubclass);
+		}
+
+
+		/*
+		if (HasAuthority())
+		{
+			for (FItemData& ItemData : InventoryItems)
+			{
+				if (ItemData.ItemClass == ItemSubclass)
+				{
+					if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+					{
+						ItemData.StackCount--;
+						Item->Use(this);
+						if (ItemData.StackCount == 0)
+							RemoveItem(ItemData);
+						UpdateHUD();
+						break;
+					}
+				}
+			}
+			if (IsLocallyControlled())
+				OnRep_InventoryItems();
+		}
+		else
+		{
+			if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+			{
+				Item->Use(this);
+			}
+			Server_UseItem(ItemSubclass);
+		}
+		*/
+	}
 }
 
-void AInventoryTut_PlayerCharacter::Client_RemoveItem_Implementation(FItemData Item)
+void AInventoryTut_PlayerCharacter::Server_UseItem_Implementation(TSubclassOf<AInventoryTut_Item> ItemSubclass)
 {
-	RemoveItem(Item);
+	UseItem(ItemSubclass);
+}
+
+bool AInventoryTut_PlayerCharacter::Server_UseItem_Validate(TSubclassOf<AInventoryTut_Item> ItemSubclass)
+{
+	return true;
 }
 
 void AInventoryTut_PlayerCharacter::AddInventoryItem(FItemData ItemData)
@@ -296,11 +326,6 @@ void AInventoryTut_PlayerCharacter::AddInventoryItem(FItemData ItemData)
 	}
 }
 
-void AInventoryTut_PlayerCharacter::AddItemToInventoryWidget(FItemData& ItemData)
-{
-	InterfaceWidget->GetInventoryWidget()->AddItem(&ItemData);
-}
-
 void AInventoryTut_PlayerCharacter::UpdateInventoryWidget()
 {
 	InterfaceWidget->GetInventoryWidget()->UpdateWidget(InventoryItems);
@@ -308,10 +333,7 @@ void AInventoryTut_PlayerCharacter::UpdateInventoryWidget()
 
 void AInventoryTut_PlayerCharacter::OnRep_InventoryItems()
 {
-	if (InventoryItems.Num())
-	{
-		UpdateInventoryWidget();
-		//AddItemToInventoryWidget(InventoryItems[InventoryItems.Num() - 1]);
-	}
+	if (!IsLocallyControlled()) return;
+	UpdateInventoryWidget();
 }
-
+#pragma endregion

@@ -8,7 +8,13 @@ void UInvTut_Inventory_ItemWidget::Init(const FItemData* Value)
 {
 	ItemData = Value;
 
-	if (ItemData != nullptr)
+	if (ItemData == nullptr)
+	{
+		I_Item->SetOpacity(0.0f);
+		B_Item->SetVisibility(ESlateVisibility::HitTestInvisible);
+		TB_StackCount->SetText(FText::FromString(FString::Printf(TEXT(""))));
+	}
+	else
 	{
 		if (IsValid(ItemData->ItemClass) && IsValid(ItemData->ItemImage))
 		{
@@ -35,6 +41,7 @@ void UInvTut_Inventory_ItemWidget::OnItemButtonClicked()
 	if (ItemData == nullptr) return;
 	if (IsValid(ItemData->ItemClass))
 	{
+		UE_LOG(LogTemp, Warning, TEXT("%s"), *GetName());
 		Cast<AInventoryTut_PlayerCharacter>(GetOwningPlayer()->GetCharacter())->UseItem(ItemData->ItemClass);
 	}
 }
