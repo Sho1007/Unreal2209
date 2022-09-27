@@ -15,19 +15,22 @@ struct FItemData
 	GENERATED_USTRUCT_BODY()
 public:
 	FItemData()
-		: ItemClass(nullptr), ItemImage(nullptr), ItemCost(0.0f)
+		: ItemClass(nullptr), ItemImage(nullptr), ItemCost(0.0f), StackCount(1)
 	{
 
 	}
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		TSubclassOf<class AInventoryTut_Item> ItemClass = nullptr;
+	TSubclassOf<class AInventoryTut_Item> ItemClass = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		UTexture2D* ItemImage;
+	UTexture2D* ItemImage;
 
 	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite)
-		float ItemCost;
+	float ItemCost;
+
+	UPROPERTY(BlueprintReadWrite)
+	int32 StackCount;
 };
 
 UCLASS()

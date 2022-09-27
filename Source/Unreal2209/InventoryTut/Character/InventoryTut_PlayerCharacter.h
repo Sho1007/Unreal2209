@@ -47,7 +47,9 @@ public:
 
 protected:
 	UFUNCTION(Category = "TUTORIAL")
-	void AddItemToInventoryWidget(FItemData ItemData);
+	void AddItemToInventoryWidget(FItemData& ItemData);
+	UFUNCTION(Category = "TUTORIAL")
+	void UpdateInventoryWidget();
 
 private:
 	// Binded Function
@@ -64,6 +66,11 @@ private:
 
 	UFUNCTION()
 	void UpdateHUD();
+
+	void RemoveItem(FItemData Item);
+
+	UFUNCTION(Client, Reliable)
+	void Client_RemoveItem(FItemData Item);
 
 	// Replicate
 	UPROPERTY(ReplicatedUsing = OnRep_InventoryItems, meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)

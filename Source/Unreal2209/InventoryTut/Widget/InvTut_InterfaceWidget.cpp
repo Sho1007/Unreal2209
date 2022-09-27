@@ -2,6 +2,7 @@
 
 
 #include "./InvTut_InterfaceWidget.h"
+#include "Blueprint//WidgetBlueprintLibrary.h"
 
 void UInvTut_InterfaceWidget::NativeConstruct()
 {
@@ -36,6 +37,7 @@ void UInvTut_InterfaceWidget::ToggleSwitcherIndex(int index)
 		// Inventory가 표시되는 경우
 		GetOwningPlayer()->SetShowMouseCursor(true);
 		FInputModeUIOnly InputMode;
+		InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::LockOnCapture);
 		GetOwningPlayer()->SetInputMode(InputMode);
 	}
 }

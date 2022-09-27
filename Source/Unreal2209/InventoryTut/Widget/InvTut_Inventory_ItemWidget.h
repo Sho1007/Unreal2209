@@ -7,6 +7,7 @@
 
 #include "Components/Button.h"
 #include "Components/Image.h"
+#include "Components/TextBlock.h"
 
 #include "../Obejct/InventoryTut_Item.h"
 
@@ -23,10 +24,14 @@ class UNREAL2209_API UInvTut_Inventory_ItemWidget : public UUserWidget
 public :
 	virtual void NativeConstruct() override;
 
-	void Init(FItemData Value);
+	void Init(const FItemData* Value);
+
+	void Update();
 
 	UFUNCTION()
 	void OnItemButtonClicked();
+
+	const FItemData* GetItemData() { return ItemData; }
 
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
@@ -35,5 +40,8 @@ private:
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
 	UImage* I_Item;
 
-	FItemData ItemData;
+	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
+	UTextBlock* TB_StackCount;
+
+	const FItemData* ItemData = nullptr;
 };

@@ -1,5 +1,5 @@
 # 진행 중
-(언리얼 강의) https://youtu.be/pH7CmzquvL0?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE&t=1
+(언리얼 강의) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
 (운영체제 강의) https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 
 # 해야할 것들
@@ -12,6 +12,16 @@
     4. (HP Bar 구현 하면서) 해당 Actor 에 Interact Button Component 도 같이 달아보기
     5. LineTrace 했을 때 true면 Interact Button Component 활성화
     6. Interact Button Component 에 해당 Actor의 Rotation을 적용
+
+2. 현재 AddItem 하면 이미 존재하는 Item 의 경우 StackCount++ 해주고 있음
+    * 일단 MaxStackCount가 필요함
+    * MaxStackCount 인데 추가로 아이템이 들어오려고 할 경우 새 아이템을 생성해줘야함 (그러려면 ItemClass 가 같기때문에 새로운 구별 방법 (UUID)가 필요함 )
+    * ItemUpdate할 때 현재 Client 에서는 Update가 안되고 있음
+        * 새롭게 업데이트된 InventoryItems 배열로 Widget을 업데이트 하려고 함
+        * 만약 UGP의 Chlidren 중에 없는 Item 이 있다면 새로 생성
+        * !! 이 때 순서가 Server 와 Client가 동기화 되어있는지 꼭 확인 필요 !!
+    * 궁극적으로 Inventory Component를 만들어서 거기에 기능을 집어넣는게 제일 깔끔해 보임
+        * 해당 Component 안에는 Inventory 와 이를 표시하는 UWidget 이 같이 들어있어야할것
 ### BugFix
 1. Item->Interact->Destroy (Destroy 할 때 시간이 걸려서 Intertact키를 연타하면 Invalid한 Item이 LineTrace 될 수 있음)
     * 그렇다면 LineTraceChannel 을 ECC_Visibility 로 하니까 Item이 Interact될 때 Channel을 다른걸로 바꿔버리면 되지 않을까?

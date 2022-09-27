@@ -148,11 +148,24 @@ void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> Item
 	{
 		if (HasAuthority())
 		{
-			if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+			for (FItemData& ItemData : InventoryItems)
 			{
-				Item->Use(this);
-				UpdateHUD();
+				if (ItemData.ItemClass == ItemSubclass)
+				{
+					if (AInventoryTut_Item* Item = ItemSubclass.GetDefaultObject())
+					{
+						ItemData.StackCount--;
+						Item->Use(this);
+						if (ItemData.StackCount == 0)
+							RemoveItem(ItemData);
+						UpdateHUD();
+						break;
+					}
+					
+				}
 			}
+			if (IsLocallyControlled())
+				OnRep_InventoryItems();
 		}
 		else
 		{
@@ -247,27 +260,58 @@ void AInventoryTut_PlayerCharacter::UpdateHUD()
 			InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
 }
 
+void AInventoryTut_PlayerCharacter::RemoveItem(FItemData Item)
+{
+	if (HasAuthority())
+		Client_RemoveItem(Item);
+
+	InterfaceWidget->GetInventoryWidget()->RemoveItemWidget(Item);
+}
+
+void AInventoryTut_PlayerCharacter::Client_RemoveItem_Implementation(FItemData Item)
+{
+	RemoveItem(Item);
+}
+
 void AInventoryTut_PlayerCharacter::AddInventoryItem(FItemData ItemData)
 {
 	if (HasAuthority())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("AddInventoryItem"));
-		InventoryItems.Add(ItemData);
+		bool bIsNewItem = true;
+		for (FItemData& CurrentItemData : InventoryItems)
+		{
+			if (CurrentItemData.ItemClass == ItemData.ItemClass)
+			{
+				CurrentItemData.StackCount++;
+				bIsNewItem = false;
+				break;
+			}
+		}
+		if (bIsNewItem)
+		{
+			InventoryItems.Add(ItemData);
+		}
 		if (IsLocallyControlled())
 			OnRep_InventoryItems();
 	}
 }
 
-void AInventoryTut_PlayerCharacter::AddItemToInventoryWidget(FItemData ItemData)
+void AInventoryTut_PlayerCharacter::AddItemToInventoryWidget(FItemData& ItemData)
 {
-	InterfaceWidget->GetInventoryWidget()->AddItem(ItemData);
+	InterfaceWidget->GetInventoryWidget()->AddItem(&ItemData);
+}
+
+void AInventoryTut_PlayerCharacter::UpdateInventoryWidget()
+{
+	InterfaceWidget->GetInventoryWidget()->UpdateWidget(InventoryItems);
 }
 
 void AInventoryTut_PlayerCharacter::OnRep_InventoryItems()
 {
 	if (InventoryItems.Num())
 	{
-		AddItemToInventoryWidget(InventoryItems[InventoryItems.Num() - 1]);
+		UpdateInventoryWidget();
+		//AddItemToInventoryWidget(InventoryItems[InventoryItems.Num() - 1]);
 	}
 }
 
