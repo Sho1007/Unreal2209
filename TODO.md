@@ -1,11 +1,17 @@
 # 진행 중
-(언리얼 강의) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
-(운영체제 강의) https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
+(언리얼 강의)   
+1. [멀티플레이어 인벤토리] (일시 중단) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
+2. [언리얼 튜토리얼] 
+
+(운영체제 강의)   
+https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 
 아이템 삭제 (ItemWidget 을 nullptr 로 초기화) 시키면 한칸씩 당겨짐.. 왜? 
 
 # 해야할 것들
-## Inventory
+## Inventory (일시 중단)
+> 인벤토리를 컴포넌트화 시키지 않고 플레이어에 바로 붙였더니 너무 지저분함.  
+> 추후 컴포넌트화 시켜서 다시 적용 예정
 ### Add Function
 1. LineTrace 했을 때 true면 Outline 나오면서 [F] (Interact) 느낌의 버튼 활성화 (해당 물체의 표면에 있는듯한 Rotation 반영)
     1. LineTrace 했을 때 true면 (이하 InteractInterface 상속받았을 때) CrossHair 활성화
@@ -128,6 +134,8 @@ if (MyArray.Num()) { }
             MyComponent->SetIsReplicated(true);
         ```
 10. Replicate 관련 오류
-    * InterfaceWidget 은 IsLocallyControlled 인 캐릭터만 생성
-    * AddItem (InterfaceWidget 건드리는 함수) 를 실행할 때 IsLocallyControlled 체크를 안해서 계속 튕김 (InterfaceWidget이 생성되지 않은 다른 Actor들에서도 계속 접근하려고 했었던 것)
-    * 항상 IsLocallyControlled 와 HasAuthority 를 잘 생각해서 코드를 짜야겠다.
+    1. IsLocallyControlled 
+        * InterfaceWidget 은 IsLocallyControlled 인 캐릭터만 생성
+        * AddItem (InterfaceWidget 건드리는 함수) 를 실행할 때 IsLocallyControlled 체크를 안해서 계속 튕김 (InterfaceWidget이 생성되지 않은 다른 Actor들에서도 계속 접근하려고 했었던 것)
+        * 항상 IsLocallyControlled 와 HasAuthority 를 잘 생각해서 코드를 짜야겠다.
+    2. RPC 는 항상 Reliable 혹은 UnReliable 과 함께 쓰여야한다.

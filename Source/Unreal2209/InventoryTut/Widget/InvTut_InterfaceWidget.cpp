@@ -41,3 +41,12 @@ void UInvTut_InterfaceWidget::ToggleSwitcherIndex(int index)
 		GetOwningPlayer()->SetInputMode(InputMode);
 	}
 }
+
+void UInvTut_InterfaceWidget::SetInventoryWidget(UUserWidget* Widget)
+{
+	W_Inventory = Cast<UInvTut_InventoryWidget>(Widget);
+	if (W_Inventory)
+	{
+		WS_Interface->AddChild(W_Inventory);
+	}
+}

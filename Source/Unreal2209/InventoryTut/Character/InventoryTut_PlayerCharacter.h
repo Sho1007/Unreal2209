@@ -45,6 +45,8 @@ public:
 	void AddHealth(float Value);
 	void RemoveHunger(float Value);
 
+	void SetInventoryWidget(UUserWidget* Widget);
+
 protected:
 	UFUNCTION(Category = "TUTORIAL")
 	void UpdateInventoryWidget();
@@ -64,6 +66,12 @@ private:
 
 	UFUNCTION()
 	void UpdateHUD();
+
+	
+	void RemoveItem(int index);
+
+	UFUNCTION(Client, Reliable)
+	void Client_RemoveItem(int index);
 
 	// Replicate
 	UPROPERTY(ReplicatedUsing = OnRep_InventoryItems, meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditAnywhere)

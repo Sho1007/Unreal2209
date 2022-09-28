@@ -37,4 +37,5 @@ public:
 	void ToggleSwitcherIndex(int index = -1);
 
 	UInvTut_InventoryWidget* GetInventoryWidget() const { return W_Inventory; }
+	void SetInventoryWidget(UUserWidget* Widget);
 };

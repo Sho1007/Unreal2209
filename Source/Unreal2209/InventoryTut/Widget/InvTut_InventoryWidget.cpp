@@ -43,18 +43,6 @@ void UInvTut_InventoryWidget::InitGrid(int Row, int Column)
 	CurrentColumn = 0;
 }
 
-void UInvTut_InventoryWidget::InitItem()
-{
-	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(UGP_Inventory, ItemWidgetClass);
-	ItemWidget->Init(nullptr);
-	UGP_Inventory->AddChildToUniformGrid(ItemWidget, CurrentRow, CurrentColumn++);
-	if (CurrentColumn >= MaxColumn)
-	{
-		CurrentColumn = 0;
-		CurrentRow++;
-	}
-}
-
 void UInvTut_InventoryWidget::AddItem(const FItemData* ItemData)
 {
 	TArray<UWidget*> Children = UGP_Inventory->GetAllChildren();
@@ -76,7 +64,7 @@ void UInvTut_InventoryWidget::AddItem(const FItemData* ItemData)
 void UInvTut_InventoryWidget::AddItem(const FItemData* ItemData, int Row, int Column)
 {
 	UInvTut_Inventory_ItemWidget* ItemWidget = CreateWidget<UInvTut_Inventory_ItemWidget>(UGP_Inventory, ItemWidgetClass);
-	ItemWidget->Init(ItemData);
+	ItemWidget->Reset();
 	//WB_Inventory->AddChild(ItemWidget);
 
 	UGP_Inventory->AddChildToUniformGrid(ItemWidget, Row, Column);
@@ -132,6 +120,29 @@ void UInvTut_InventoryWidget::UpdateWidget(const TArray<FItemData>& NewInventory
 		{
 			// Create Widget
 			AddItem(&NewInventoryItems[i]);
+		}
+	}
+}
+
+void UInvTut_InventoryWidget::ResetItemWidget()
+{
+	UE_LOG(LogTemp, Warning, TEXT("ResetItemWidget Is Called"));
+	TArray<UWidget*> Children = UGP_Inventory->GetAllChildren();
+
+	for (UWidget* Child : Children)
+	{
+		UInvTut_Inventory_ItemWidget* ItemWidget = Cast< UInvTut_Inventory_ItemWidget>(Child);
+		if (ItemWidget)
+		{
+			const FItemData* ItemData = ItemWidget->GetItemData();
+			if (ItemData != nullptr)
+			{
+				if (ItemData->StackCount == 0)
+				{
+					UE_LOG(LogTemp, Warning, TEXT("Reset Is Called"));
+					ItemWidget->Reset();
+				}
+			}
 		}
 	}
 }

@@ -33,6 +33,8 @@ public :
 
 	const FItemData* GetItemData() { return ItemData; }
 
+	void Reset();
+
 private:
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget), BlueprintReadWrite)
 	UButton* B_Item;

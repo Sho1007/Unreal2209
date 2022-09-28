@@ -32,7 +32,6 @@ public:
 
 	void Init();
 	void InitGrid(int Row, int Column);
-	void InitItem();
 	
 	void AddItem(const FItemData* ItemData);
 	void AddItem(const FItemData* ItemData, int Row, int Column);
@@ -40,6 +39,7 @@ public:
 	void SetParent(class UInvTut_InterfaceWidget* Value) { Parent = Value; }
 
 	void UpdateWidget(const TArray<FItemData>& NewInventoryItems);
+	void ResetItemWidget();
 
 	UFUNCTION()
 	void OnCloseButtonClicked();

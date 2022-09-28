@@ -165,6 +165,10 @@ void AInventoryTut_PlayerCharacter::RemoveHunger(float Value)
 	StatusComponent->SubHunger(Value);
 }
 
+void AInventoryTut_PlayerCharacter::SetInventoryWidget(UUserWidget* Widget)
+{
+}
+
 void AInventoryTut_PlayerCharacter::Interact()
 {
 	FVector Start = CameraComponent->GetComponentLocation();
@@ -217,6 +221,23 @@ void AInventoryTut_PlayerCharacter::UpdateHUD()
 			InterfaceWidget->UpdateHUD(StatusComponent->GetHealth(), StatusComponent->GetHunger());
 }
 
+void AInventoryTut_PlayerCharacter::RemoveItem(int index)
+{
+	if (IsLocallyControlled())
+	{
+
+	}
+	else
+	{
+		Client_RemoveItem(index);
+	}
+}
+
+void AInventoryTut_PlayerCharacter::Client_RemoveItem_Implementation(int index)
+{
+	InterfaceWidget->GetInventoryWidget()->ResetItemWidget();
+}
+
 #pragma region InventoryComponent
 
 void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> ItemSubclass)
@@ -237,7 +258,10 @@ void AInventoryTut_PlayerCharacter::UseItem(TSubclassOf<AInventoryTut_Item> Item
 						InventoryItems[i].StackCount--;
 						Item->Use(this);
 						if (InventoryItems[i].StackCount == 0)
-							InventoryItems.RemoveAt(i);
+						{
+							RemoveItem(i);
+						}
+							
 
 						break;
 					}
