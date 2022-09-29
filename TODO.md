@@ -1,7 +1,7 @@
 # 진행 중
 (언리얼 강의)   
 1. [멀티플레이어 인벤토리] (일시 중단) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
-2. [언리얼 튜토리얼] 
+2. [언리얼 튜토리얼] 현재 Target Lock On System BP 구현 완료 -> CPP 로 변환 중
 
 (운영체제 강의)   
 https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
@@ -89,8 +89,14 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
     * Actor (Component말고) 는 기본적으로 SceneComponent를 가지고 있고, 거기에 여러 컴포넌트들을 추가하여 만들어지는 컴포넌트의 집합체이다.
 
 6.  Timer 설정
-    * ex) GetWorld()->GetTimerManager().SetTimer(MyTimerHandler, this, &MyUObject::MyMemberMethod, 10.0f, true);
-    * 이 타이머를 가질 FTimerHandler, 실행하는 UObject, 실행하려고 하는 MemberMethod, 타이머 시간 (얼마 뒤에 실행할지), 반복여부, 첫 시작 시간 (안적으면 앞에 시간과 동일)
+    1. 생성
+        * ex) GetWorld()->GetTimerManager().SetTimer(MyTimerHandle, this, &MyUObject::MyMemberMethod, 10.0f, true);
+        * 이 타이머를 가질 FTimerHandler, 실행하는 UObject, 실행하려고 하는 MemberMethod, 타이머 시간 (얼마 뒤에 실행할지), 반복여부, 첫 시작 시간 (안적으면 앞에 시간과 동일)
+    2. 제거
+        ```c++
+            GetWorld()->GetTimerManager().ClearTimer(MyTimerHandle);
+	        MyTimerHandle.Invalidate();
+        ```
 
 7. LogUObjectBase: Error: 'this' pointer is invalid. 에러
     * 정말 바보같은 에러다. 만들어져있지 않은 Object에 아마 MyObject.IsValidLowLevelFast()를 실행하면 뜰 것이다.
@@ -139,3 +145,45 @@ if (MyArray.Num()) { }
         * AddItem (InterfaceWidget 건드리는 함수) 를 실행할 때 IsLocallyControlled 체크를 안해서 계속 튕김 (InterfaceWidget이 생성되지 않은 다른 Actor들에서도 계속 접근하려고 했었던 것)
         * 항상 IsLocallyControlled 와 HasAuthority 를 잘 생각해서 코드를 짜야겠다.
     2. RPC 는 항상 Reliable 혹은 UnReliable 과 함께 쓰여야한다.
+
+11. ECollisionChannel (ECC)
+    1. ETraceTypeQuery 와 EObjectTypeQuery 는 다 ECC 안에 있는걸 따로 매칭한 것이다.
+    2. UEngineTypes::ConvertToTraceType() 또는 UEngineTypes::ConvertToObjectType() 으로 형변환 해서 사용 가능하다. (반대로도 가능)
+
+12. Unreal Interface
+    1. 사용법
+        1. c++ 로 작성해서 c++ class 에서 inherit 한 뒤 c++로 사용할 때는
+            ```c++
+                if (IMyInterface* Interface = Cast<IMyInterface>(MyObject))
+                {
+                    Interface->MyInterfaceFunction();
+                }
+            ```
+        2. c++로 작성해서 BP 로 inherit, implement 한 뒤 c++에서 사용할 때는
+            ```c++
+                if (MyObject->GetClass()->ImplementsInterface(UMyInteface::StaticClass()))
+                {
+                    IMyInteface::Execute_MyInterfaceFunction(MyObject);
+                }
+            ```
+    2. 상속 방법
+        1. c++로 작성해서 BP에서 Implement 하고 싶으면 (당연한거지만 적어봄)
+            ```c++
+                // BP 에서 구현해줘야하기 때문에 BlueprintImplementableEvent 혹은 BlueprintNativeEvent
+                // virtual X, 당연히 pure virtual 도 X
+                UFUNCTION(BlueprintImplementableEvent)
+                void MyFunction();
+            ```
+13. SphereOverlapActors
+    1. 사용법
+        ```c++
+            FVector MySpawnLocation = GetActorLocation();
+            float MySphereRadius = 100.0f;
+            TArray<TEnumAsByte<EObjectTypeQuery>> QueryArray;
+	        QueryArray.Add(UEngineTypes::ConvertToObjectType(ECC_Pawn));
+            TArray<AActor*> IgnoreActorArray;
+	        IgnoreActorArray.Add(this);
+
+            TArray<AActor*> OverlapedActors;
+            UKismetSystemLibrary::SphereOverlapActors(GetWorld(), MySpawnLocation, MySphereRadius, QueryArray, AMyTargetActor::StaticClass(), IgnoreActorArray, OverlapedActors);
+        ```
