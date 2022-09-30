@@ -7,6 +7,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "TargetTut/TargetTut_EnemyInterface.h"
 #include "TargetTut/TargetTut_Enemy.h"
+#include "TargetTut/CharacterStatusComponent.h"
 
 // Sets default values
 ATargetTut_Character::ATargetTut_Character()
@@ -27,8 +28,6 @@ ATargetTut_Character::ATargetTut_Character()
 	if (Temp.Succeeded())
 		TargetClass = Temp.Class;
 #pragma endregion
-
-	
 }
 
 // Called when the game starts or when spawned
@@ -50,6 +49,76 @@ void ATargetTut_Character::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	PlayerInputComponent->BindAxis("MoveForward", this, &ATargetTut_Character::MoveForward);
+	PlayerInputComponent->BindAxis("MoveRight", this, &ATargetTut_Character::MoveRight);
+	PlayerInputComponent->BindAxis("LookUp", this, &ATargetTut_Character::LookUp);
+	PlayerInputComponent->BindAxis("LookRight", this, &ATargetTut_Character::LookRight);
+}
+
+void ATargetTut_Character::MoveForward(float Value)
+{
+	UCharacterStatusComponent* Component = Cast<UCharacterStatusComponent>(GetComponentByClass(UCharacterStatusComponent::StaticClass()));
+	if (Component && Component->IsValidLowLevelFast())
+	{
+		if (!Component->bIsDead)
+		{
+			FRotator Rotator = GetControlRotation();
+			Rotator.Roll = 0;
+			Rotator.Pitch = 0;
+
+			AddMovementInput(FRotationMatrix(Rotator).GetUnitAxis(EAxis::X), Value);
+		}
+	}
+}
+
+void ATargetTut_Character::MoveRight(float Value)
+{
+	UCharacterStatusComponent* Component = Cast<UCharacterStatusComponent>(GetComponentByClass(UCharacterStatusComponent::StaticClass()));
+	if (Component && Component->IsValidLowLevelFast())
+	{
+		if (!Component->bIsDead)
+		{
+			FRotator Rotator = GetControlRotation();
+			Rotator.Roll = 0;
+			Rotator.Pitch = 0;
+
+			AddMovementInput(FRotationMatrix(Rotator).GetUnitAxis(EAxis::Y), Value);
+		}
+	}
+}
+
+void ATargetTut_Character::LookUp(float Value)
+{
+	UCharacterStatusComponent* StatusComponent = Cast<UCharacterStatusComponent>(GetComponentByClass(UCharacterStatusComponent::StaticClass()));
+	if (StatusComponent && StatusComponent->IsValidLowLevelFast())
+	{
+		if (!StatusComponent->bIsDead)
+		{
+			if (bIsCameraLocked)
+			{
+				LockCameraToTarget();
+			}
+			else
+			{
+				AddControllerPitchInput(Value);
+			}
+		}
+	}
+}
+
+void ATargetTut_Character::LookRight(float Value)
+{
+	UCharacterStatusComponent* StatusComponent = Cast<UCharacterStatusComponent>(GetComponentByClass(UCharacterStatusComponent::StaticClass()));
+	if (StatusComponent && StatusComponent->IsValidLowLevelFast())
+	{
+		if (!StatusComponent->bIsDead)
+		{
+			if (!bIsCameraLocked)
+			{
+				AddControllerYawInput(Value);
+			}
+		}
+	}
 }
 
 #pragma region Lock On

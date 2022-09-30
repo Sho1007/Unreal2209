@@ -3,7 +3,7 @@
 1. [멀티플레이어 인벤토리] (일시 중단) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
 2. [Target Lock On / Off] c++ 변환 완료 -> 컴포넌트화 해야함
 3. [CharacterStatusComponent] 컴포넌트화 중
-    * 죽으면 나타나는 MainMenu Widget 도 만들어야겠다.
+    * DeadMenWidget 만들었다. (이제 Button 기능들 만들 차례)
     * ProgressBar의 percentage를 Bind하는 방법을 찾아봐야겠다.
 
 (운영체제 강의)   
@@ -43,7 +43,10 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
     * [ ] 캐릭터 사망시 어떻게 처리할 것인가? (현재 Status Component에 bIsDead까지만 있음) (-> 이 참에 Respawn 혹은 죽은 이후에는 어떻게 처리할지 생각)
 
 # 완료한 것들
-* PlayerCharacterState 라는 ActorComponent를 만들어서 관리한다.    
+* Movement Input / Camera Input 을 c++로 Bind
+* DeadMenu Widget을 ActorStatusComponent 안에 만들었다. (해당 Property와 상호작용하기 때문에)
+    * 죽으면 DeadMenuWidget이 표시되게 만들었다.
+* CharacterStatusComponent 라는 ActorComponent를 만들어서 관리한다.    
     1. Actor Component와 그냥 Component의 차이 확인하기 -> ActorComponent 을 사용하기로 정함 (추상적개념이기 때문에)
     2. CharacterStatusComponent 라는 AC를 만들었다. (추후 플레이어와 NPC 모두 적용하기 위함)
     3. Health 과 RecieveDamage 기능을 구현했다.

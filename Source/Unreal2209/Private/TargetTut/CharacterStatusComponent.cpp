@@ -7,6 +7,8 @@
 #include "Camera/CameraComponent.h"
 #include "TargetTut/GameMode/TutGameMode.h"
 #include "Components/AudioComponent.h"
+#include "Sound/SoundCue.h"
+#include "GameFramework/Character.h"
 
 // Sets default values for this component's properties
 UCharacterStatusComponent::UCharacterStatusComponent()
@@ -28,6 +30,10 @@ UCharacterStatusComponent::UCharacterStatusComponent()
 	static ConstructorHelpers::FObjectFinder<USoundCue> HealSoundCue_Body(TEXT("SoundCue'/Game/Resources/SFX/HealSoundCue.HealSoundCue'"));
 	if (HealSoundCue_Body.Succeeded())
 		HealSoundCue = HealSoundCue_Body.Object;
+
+	static ConstructorHelpers::FClassFinder<UStatusWidget> StatusWidget_Body(TEXT("WidgetBlueprint'/Game/Damage_Healing/Widgets/WBP_Status.WBP_Status_C'"));
+	if (StatusWidget_Body.Succeeded())
+		StatusWidgetClass = StatusWidget_Body.Class;
 }
 
 
@@ -38,9 +44,12 @@ void UCharacterStatusComponent::BeginPlay()
 
 	// ...
 
-
 	ATutGameMode* GameMode = Cast<ATutGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameMode->SetSpawnTransform(GetOwner()->GetTransform());
+
+	StatusWidget = CreateWidget<UStatusWidget>(Cast<APlayerController>(Cast<ACharacter>(GetOwner())->GetController()), StatusWidgetClass);
+	if (StatusWidget && StatusWidget->IsValidLowLevelFast())
+		StatusWidget->AddToViewport();
 }
 
 
@@ -71,7 +80,7 @@ void UCharacterStatusComponent::RecieveDamage(float Damage)
 		else
 		{
 			if (DamageSoundCue && DamageSoundCue->IsValidLowLevelFast())
-				UGameplayStatics::SpawnSoundAttached(DamageSoundCue, GetOwner()->GetRootComponent());
+				UGameplayStatics::SpawnSoundAttached(DamageSoundCue, GetOwner()->GetRootComponent(), FName("None"), FVector(0, 0, 0), EAttachLocation::KeepRelativeOffset, false, 1.0f, 1.0f, 0.3f);
 			else
 				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] DamageSoundCue Is Not Valid"), *GetOwner()->GetName());
 			
@@ -101,7 +110,10 @@ void UCharacterStatusComponent::SetDead()
 		PlayerMainCamera->PostProcessSettings.bOverride_ColorSaturation = true;
 		PlayerMainCamera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
 	}
-	RespawnPlayer();
+
+	StatusWidget->ShowDeadMenu();
+	//RespawnPlayer();
+
 }
 
 void UCharacterStatusComponent::RespawnPlayer()

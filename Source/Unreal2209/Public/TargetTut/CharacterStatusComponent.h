@@ -5,7 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/ActorComponent.h"
 
-#include "Sound/SoundCue.h"
+#include "TargetTut/Widget/StatusWidget.h"
 
 #include "CharacterStatusComponent.generated.h"
 
@@ -45,12 +45,16 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	float MaxHealth = 100.0f;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
-	bool bIsDead;
+	bool bIsDead = false;
 
 	// Sound Object
-	USoundCue* DamageSoundCue;
-	USoundCue* DeadSoundCue;
-	USoundCue* HealSoundCue;
+	class USoundCue* DamageSoundCue;
+	class USoundCue* DeadSoundCue;
+	class USoundCue* HealSoundCue;
 
 	UAudioComponent* DeadSoundComponent;
+
+	// Widget
+	TSubclassOf<UStatusWidget> StatusWidgetClass;
+	UStatusWidget* StatusWidget;
 };
