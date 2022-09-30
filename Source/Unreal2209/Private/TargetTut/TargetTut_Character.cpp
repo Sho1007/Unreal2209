@@ -22,9 +22,13 @@ ATargetTut_Character::ATargetTut_Character()
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
 
+#pragma region LockOn
 	static ConstructorHelpers::FClassFinder<UObject> Temp(TEXT("Blueprint'/Game/TargetTut/Blueprints/BP_TestEnemy.BP_TestEnemy_C'"));
 	if (Temp.Succeeded())
 		TargetClass = Temp.Class;
+#pragma endregion
+
+	
 }
 
 // Called when the game starts or when spawned
@@ -48,8 +52,10 @@ void ATargetTut_Character::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 }
 
+#pragma region Lock On
+
 void ATargetTut_Character::LockOnTarget()
-{
+{	
 	if (!bIsLockOn)
 	{
 		FindTargets(0);
@@ -74,11 +80,27 @@ void ATargetTut_Character::LockOnLeftTarget()
 {
 	if (bIsLockOn)
 	{
-
+		FindTargets(1);
+		if (TargetLocked == nullptr || !TargetLocked->IsValidLowLevelFast())
+			LockOff();
 	}
 	else
 	{
+		LockOnTarget();
+	}
+}
 
+void ATargetTut_Character::LockOnRightTarget()
+{
+	if (bIsLockOn)
+	{
+		FindTargets(2);
+		if (TargetLocked == nullptr || !TargetLocked->IsValidLowLevelFast())
+			LockOff();
+	}
+	else
+	{
+		LockOnTarget();
 	}
 }
 
@@ -251,6 +273,19 @@ void ATargetTut_Character::SelectRightTarget()
 	}
 }
 
+void ATargetTut_Character::LockCameraToTarget()
+{
+	if (bIsLockOn)
+	{
+		if (TargetLocked && TargetLocked->IsValidLowLevelFast())
+		{
+			FRotator Rotator = UKismetMathLibrary::FindLookAtRotation(CameraComponent->GetComponentLocation(), TargetLocked->GetActorLocation());
+			Rotator.Pitch -= 5.0f;
+			GetController()->SetControlRotation(Rotator);
+		}
+	}
+}
+
 void ATargetTut_Character::LockOnCamera()
 {
 	SpringArmComponent->bEnableCameraRotationLag = true;
@@ -298,6 +333,7 @@ void ATargetTut_Character::ChekcRange()
 {
 	if (TargetLocked && TargetLocked->IsValidLowLevelFast())
 	{
+		//this->GetComponentByClass();
 		if (GetDistanceTo(TargetLocked) > TargetSearchRadius * 1.5f)
 		{
 			LockOff();
@@ -307,3 +343,4 @@ void ATargetTut_Character::ChekcRange()
 		LockOff();
 }
 
+#pragma endregion

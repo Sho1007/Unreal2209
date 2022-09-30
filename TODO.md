@@ -1,7 +1,10 @@
 # 진행 중
 (언리얼 강의)   
 1. [멀티플레이어 인벤토리] (일시 중단) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
-2. [언리얼 튜토리얼] 현재 Target Lock On System BP 구현 완료 -> CPP 로 변환 중
+2. [Target Lock On / Off] c++ 변환 완료 -> 컴포넌트화 해야함
+3. [CharacterStatusComponent] 컴포넌트화 중
+    * 죽으면 나타나는 MainMenu Widget 도 만들어야겠다.
+    * ProgressBar의 percentage를 Bind하는 방법을 찾아봐야겠다.
 
 (운영체제 강의)   
 https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
@@ -41,10 +44,30 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 
 # 완료한 것들
 * PlayerCharacterState 라는 ActorComponent를 만들어서 관리한다.    
-    * Actor Component와 그냥 Component의 차이 확인하기 -> ActorComponent 을 사용하기로 정함 (추상적개념이기 때문에)
-    * Component에 PlayerState 라는 FStruct 만들기 -> FStruct 따로 만들 필요없이 그냥 PlayerCharacterStatus 라는 Component를 만들었다.
-    * CrossHairWidget을 HUDWidget으로 변경하여 거기에 Status를 표시하는 TextBlock을 생성
-    * HUDWidget과 CharacterStatusComponent를 PlayerCharacter를 매개체로 연결
+    1. Actor Component와 그냥 Component의 차이 확인하기 -> ActorComponent 을 사용하기로 정함 (추상적개념이기 때문에)
+    2. CharacterStatusComponent 라는 AC를 만들었다. (추후 플레이어와 NPC 모두 적용하기 위함)
+    3. Health 과 RecieveDamage 기능을 구현했다.
+        * FClamp 로 Heal 이나 Damage 가 0~MaxHealth 의 범위를 넘지 않도록 조절했다.
+        * UGameplayStatics::SpawnSoundAttached 를 통해 소리가 플레이어에 부착되도록 했다.
+            * 리턴값은 UAuidoComponent* 이다. (Play와 Stop로 소리를 컨트롤 가능하다.)
+        * Health가 0이 되면 죽도록 처리했다. (GameMode는 왜 c++ 상속해도 UFUNCTION이 안생기는지 의문)
+            * GetWorld()->SpawnActor() 를 사용했는데 매개변수로 FActorSpawnParameters 가 들어간다.
+            * FActorSpawnParameters 에서 Owner 만 사용해봤다.
+            * 흑백화면을 만들기 위해 Camera->PostProcessingSettings를 수정했다.
+    4. Component 안에서 Widget 을 만들고 Player 에 붙였다.
+        * 이제 해당 컴포넌트와 상호작용하는 Widget은 그 안에서 만들고 관리해야겠다.
+
+* Zoom In / Out 을 만들었다.
+    * 단순히 Spring Arm Target Length 만 조절하면 되는 쉬운 작없이었다.   
+    (아마 부드럽게 작동하려면 추가적인 수정이 필요할듯)
+
+* Target Lock On / Off 를 만들었다.
+    * Blueprint로 먼저 작업하고 C++로 변환하는 과정을 거쳤다.
+        * 확실히 워크 플로우를 한번에 보기 편하고, 새로운 기능을 추가할 땐 블루프린트로 선작업하는게 훨씬 좋은 것 같다.
+        * c++ 로 옮길땐 항상 생각지도 못한 변수가 생길 수 있다. 변수부터 차근차근 바꾸고 함수도 구현이 확실히 되는지, 외부참조는 없는지 확인 후 변환할 것
+
+
+
 
 * Replicate
     * Character 의 Interact() 를 Client에서도 사용 가능하게 수정함 (그런데 현재 서버에서 안됨)
@@ -187,3 +210,42 @@ if (MyArray.Num()) { }
             TArray<AActor*> OverlapedActors;
             UKismetSystemLibrary::SphereOverlapActors(GetWorld(), MySpawnLocation, MySphereRadius, QueryArray, AMyTargetActor::StaticClass(), IgnoreActorArray, OverlapedActors);
         ```
+14. 컴포넌트화
+    1. 해당 액터에 그 컴포넌트가 있는지 확인하는 법
+        ``` c++
+            // 생각보다 복잡
+            UMyComponent* MyComponent = Cast<UMyComponent>(MyActor->GetComponentByClass(UMyComponent::StaticClass()));
+            if (MyComponent != nullptr && MyComponent->IsValidLowLevelFast())
+            {
+                MyComponent->MyComponentFunction();
+            }
+        ```
+        1. 컴포넌트를 찾고자 하는 액터->GetComponentByClass() 를 해준다.
+            * 이 때 파라미터로는 <B>UMyActorComponent::StaticClass()</B> 를 넣어준다.
+        2. 위 함수의 리턴값은 UActorComponent* 이다. 따라서 바로 넣을 수 없으니 Casting 해서 넣어준다.
+        3. 초기화된 변수가 nullptr 인지, nullptr이 아니라면 valid한지 체크한다.
+        4. 여기까지 통과하면 해당 액터에 컴포넌트가 존재하고 제대로 찾은것이니 <B>-></B>로 사용한다.
+    2. 위젯을 소유하는 액터가 해당 컴포넌트를 가지고 있는지 확인하는 법
+        ```c++
+            UMyComponent* MyComponent = Cast<UMyComponent>(UUserWidget::GetOwningPlayerPawn()->GetComponentByClass(UMyComponent::StaticClass()));
+        ```
+        1. 처음엔 GetOwningPlayer() 를 썼었는데 Cast가 실패했었다. (GetOwningPlayer 는 PlayerController를 반환한다, Component 는 그 Controller가 조종하는 Pawn에서 찾아야함)
+        2. GetOwningPlayerPawn()을 사용하니 정상적으로 작동
+
+15. PostProcessing 
+    1. 흑백화면 만들기
+        ```c++
+            UCameraComponent* Camera = Cast<UCameraComponent>(this->GetComponentByClass(UCameraComponent::StaticClass()));
+            if (Camera && Camera->IsValidLowLevelFast())
+            {
+                Camera->PostProcessSettings.bOverride_ColorSaturation = 1;
+                Camera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
+            }
+        ```
+        1. 플레이어의 <B>CameraComponent</B> 에 접근
+        2. <B>CameraComponent</B> 의 <B>PostProcessSetting</B>을 수정해준다.
+            1. 하나는 해당 값을 Override할지를 정하는 bool형 변수 bOverride_ 이고
+            2. 하나는 채도값에 해당하는 FVector4형 변수 ColorSaturation 이다.
+        3. 참고로 이 때 플레이어의 카메라를 포스트 프로세싱 하는 것이기 때문에 World는 정상적으로 적용되나, Widget은 Viewport에 따로 붙기때문에 적용이 안된다.   
+        (근데 와우도 UI는 흑백화면 적용이 안돼서 굳이 찾을 필요는 없을듯)
+        

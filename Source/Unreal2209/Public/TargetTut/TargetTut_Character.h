@@ -20,7 +20,7 @@ public:
 	ATargetTut_Character();
 
 protected:
-	// Called when the game starts or when spawned
+	// Called when the game starts or when spawnedx
 	virtual void BeginPlay() override;
 
 public:	
@@ -30,12 +30,16 @@ public:
 	// Called to bind functionality to input
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 
+#pragma region LockOn
+public:
 	// Targeting Fucntion
 
 	UFUNCTION(BlueprintCallable)
 	void LockOnTarget();
 	UFUNCTION(BlueprintCallable)
 	void LockOnLeftTarget();
+	UFUNCTION(BlueprintCallable)
+	void LockOnRightTarget();
 
 	UFUNCTION(BlueprintCallable)
 	void FindTargets(int32 Direction);
@@ -56,6 +60,8 @@ public:
 	UFUNCTION(BlueprintCallable)
 	void SelectRightTarget();
 
+	UFUNCTION(BlueprintCallable)
+	void LockCameraToTarget();
 	UFUNCTION(BlueprintCallable)
 	void LockOnCamera();
 	UFUNCTION(BlueprintCallable)
@@ -78,7 +84,7 @@ public:
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	float TargetSearchDegrees = 45.0f;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
-	bool bDebugModeActive = true;
+	bool bDebugModeActive = false;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	bool bIsLockOn = false;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
@@ -86,6 +92,8 @@ public:
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	FTimerHandle RangeCheckTimer;
+#pragma endregion
+
 private:
 	// Character Components
 	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditDefaultsOnly)
