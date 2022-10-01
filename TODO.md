@@ -3,8 +3,10 @@
 1. [멀티플레이어 인벤토리] (일시 중단) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
 2. [Target Lock On / Off] c++ 변환 완료 -> 컴포넌트화 해야함
 3. [CharacterStatusComponent] 컴포넌트화 중
-    * DeadMenWidget 만들었다. (이제 Button 기능들 만들 차례)
     * ProgressBar의 percentage를 Bind하는 방법을 찾아봐야겠다.
+    * Respawn 기능을 만들었다.
+        * GameMode에 있는 Spawn Transform 을 적용하도록 설정해놨는데,
+        SavePoint 같은 SaveData 를 만들어야겠다. (돈, 능력치 등)
 
 (운영체제 강의)   
 https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
@@ -58,7 +60,12 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
             * FActorSpawnParameters 에서 Owner 만 사용해봤다.
             * 흑백화면을 만들기 위해 Camera->PostProcessingSettings를 수정했다.
     4. Component 안에서 Widget 을 만들고 Player 에 붙였다.
-        * 이제 해당 컴포넌트와 상호작용하는 Widget은 그 안에서 만들고 관리해야겠다.
+    5. 죽었을 때 나타나는 DeadMenu 를 만들었다.
+        * Respawn , Quit 버튼을 만들었다.
+    6. Respawn 기능을 만들었다.
+        * Component BeginPlay 시 Widget을 새로 만들어서 붙여줬다.
+        * GameMode 와 연동하여 SpawnActor 해줬다.
+    7. Quit Game 기능을 만들었다.
 
 * Zoom In / Out 을 만들었다.
     * 단순히 Spring Arm Target Length 만 조절하면 되는 쉬운 작없이었다.   
@@ -85,20 +92,22 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
 3. Post Construct (like BeginPlay)가 필요할 때는 Native Construct 를 override 해서 사용하자!
     * 함수 내부에서 먼저 Super::NaiveConstruct()를 실행 해 준 뒤 Post Construct 처럼 활용
 
-4. Interface 자체에서 구현된 경우 아래와 같이 cast 없이 바로 method 사용 가능
+4. Interface 자체에서 구현된 경우 아래와 같이 cast 없이 바로 method 사용 가능   
+(멍청한 거였음 이건 해당 OBject를 import 했다는건데 그럴꺼면 interface 쓸 필요가 없음)   
+(interface 는 두 객체가 서로 정보를 알지 못해도 interface 라는 공통분모를 가지고 소통하는거)
     * 이 때 interface 를 상속받은 class 에서 interface method를 override 한 경우 override 된 함수가 실행된다.
     * 만약 override 하지 않았다면 interface 자체에서 구현된 함수가 실행된다.
     * ex)
 
-```c++
-    // 아래처럼 굳이 cast 해서 사용할 필요 없음
-    if (IMyInterface* Interface = Cast<IMyInterface>(MyObject);)
-    {
-        Interface->MyInterfaceMethod();
-    }
-    // 아래와 같이 사용
-    MyObject->MyInterfaceMethod();
-```
+        ```c++
+            // 아래처럼 굳이 cast 해서 사용할 필요 없음
+            if (IMyInterface* Interface = Cast<IMyInterface>(MyObject);)
+            {
+                Interface->MyInterfaceMethod();
+            }
+            // 아래와 같이 사용
+            MyObject->MyInterfaceMethod();
+        ```
 5. Component
     1. ActorComponent
         * 모든 컴포넌트들의 부모이다.
@@ -136,10 +145,10 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
         * Replicate 할 때는 이게 어디서 실행될 지 꼭 생각하면서 함수를 짜야겠다.
 
 8. 배열에서 IsNotEmtpy() 를 표현하는 방법
-```c++
-if (MyArray.Num()) { }
-// 이렇게 하면 Num 이 0이면 false로 취급돼서 IsNotEmpty()와 같은 기능을 한다.
-```
+    ```c++
+        if (MyArray.Num()) { }
+        // 이렇게 하면 Num 이 0이면 false로 취급돼서 IsNotEmpty()와 같은 기능을 한다.
+    ```
 9. Replicate
     1. UPROPERTY
         ```c++
@@ -235,20 +244,83 @@ if (MyArray.Num()) { }
         1. 처음엔 GetOwningPlayer() 를 썼었는데 Cast가 실패했었다. (GetOwningPlayer 는 PlayerController를 반환한다, Component 는 그 Controller가 조종하는 Pawn에서 찾아야함)
         2. GetOwningPlayerPawn()을 사용하니 정상적으로 작동
 
-15. PostProcessing 
-    1. 흑백화면 만들기
-        ```c++
-            UCameraComponent* Camera = Cast<UCameraComponent>(this->GetComponentByClass(UCameraComponent::StaticClass()));
-            if (Camera && Camera->IsValidLowLevelFast())
-            {
-                Camera->PostProcessSettings.bOverride_ColorSaturation = 1;
-                Camera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
-            }
-        ```
-        1. 플레이어의 <B>CameraComponent</B> 에 접근
-        2. <B>CameraComponent</B> 의 <B>PostProcessSetting</B>을 수정해준다.
-            1. 하나는 해당 값을 Override할지를 정하는 bool형 변수 bOverride_ 이고
-            2. 하나는 채도값에 해당하는 FVector4형 변수 ColorSaturation 이다.
-        3. 참고로 이 때 플레이어의 카메라를 포스트 프로세싱 하는 것이기 때문에 World는 정상적으로 적용되나, Widget은 Viewport에 따로 붙기때문에 적용이 안된다.   
-        (근데 와우도 UI는 흑백화면 적용이 안돼서 굳이 찾을 필요는 없을듯)
+15. Camera
+    1. PostProcessing 
+        1. 흑백화면 만들기
+            ```c++
+                UCameraComponent* Camera = Cast<UCameraComponent>(this->GetComponentByClass(UCameraComponent::StaticClass()));
+                if (Camera && Camera->IsValidLowLevelFast())
+                {
+                    Camera->PostProcessSettings.bOverride_ColorSaturation = 1;
+                    Camera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
+                }
+            ```
+            1. 플레이어의 <B>CameraComponent</B> 에 접근
+            2. <B>CameraComponent</B> 의 <B>PostProcessSetting</B>을 수정해준다.
+                1. 하나는 해당 값을 Override할지를 정하는 bool형 변수 bOverride_ 이고
+                2. 하나는 채도값에 해당하는 FVector4형 변수 ColorSaturation 이다.
+            3. 참고로 이 때 플레이어의 카메라를 포스트 프로세싱 하는 것이기 때문에 World는 정상적으로 적용되나, Widget은 Viewport에 따로 붙기때문에 적용이 안된다.   
+            (근데 와우도 UI는 흑백화면 적용이 안돼서 굳이 찾을 필요는 없을듯)
+    2. Camera Shake
+        1. 먼저 CameraShakeBase 를 만든다.
+            1. 단일 인스턴스 (하나로 쿨타임마다 쓸껀지 / 매번 카메라셰이크때마다 생성할껀지)
+                * 셰이크를 중첩할게 아니고 한 액터에서만 사용할꺼기 때문에 이번엔 단일로 사용함
+            2. 카메라 셰이크 패턴 -> 루트 셰이크 패턴 (카메라 흔들 방법 / 종류)
+                * 웨이브 오실레이터가 무난하다고 해서 선택
+                * Location
+                    * 위치 면적 배수 : 흔들릴 면적
+                    * 위치 주파수 배수 : 흔들림 강도
+                * Timing
+                    * 경과 시간 : 흔들릴 시간
+        2. 다 만들었으면 저장하고 아래와 같이 사용
+            ```c++
+                if (CameraShakeBase && CameraShakeBase->IsValidLowLevelFast())
+                    Cast<APlayerController>(GetOwner()->GetOwner())->PlayerCameraManager.Get()->StartCameraShake(CameraShakeBase);
+            ```
+            1. 요점은 사용하고자 하는 Player Controller 에 접근 후
+            2. 카메라 매니저를 부르고
+            3. 거기서 StartShakeCamera 를 하면 된다. (매개변수는 TSubclassOf<UCameraShakeBase>) 이다.
+
         
+16. Animation
+    1. RootMotion
+        1. RootMotion 인지 확인하는 방법 (Mixamo)
+            * mixamo 에서 애니메이션을 선택하면 <B>In Place</B> 체크 박스가 있다.
+            * 언리얼의 애니메이션 창에서 Character->Bones->All Hierachy 선택하면 빨간색 줄 (Root)가 늘어나는게 보인다.
+        2. RootMotion 활성화
+            * 애니메이션 Asset Detail 의 Root Motion 탭에서 루트모션 활성화를 눌러준다.
+                * 루트모션 잠금을 Ref Pose 와 Anim First Frame 중에 적절한 것으로 선택해준다.
+            * 제대로 적용됐는지 확인하려면 캐릭터->애니메이션-> 루프 / 루프 및 초기화 를 선택해준다.
+            * 아까처럼 루프선(빨간줄)이 늘어난다면 제대로 적용된 것
+        3. Blender 의 Addon 활용할 것
+            * Edit -> Preferences -> Add-ons 에서 Animation:Mixamo Converter 찾기
+            * 설치되어있지 않다면 위의 Install 눌러서 Zip 다운받은거 찾아서 설치
+            * 설치 후 Blender 화면의 우측 Mixamo 탭 누르고
+                * Transfer Rotation 체크해제
+                * Advances Options 에서 Apply Rotations 체크해제
+            * Advanced Options 닫고 Batch 구역의 Input 과 Output 폴더 경로 설정
+            * Input 폴더에 mixamo 에서 받은 fbx 넣고 Batch Convert 버튼 누르기
+            * Output 폴더에 변환된 fbx를 unreal 에서 활용 (모델, 애니메이션 둘 다 가능)
+    2. Animation Slot
+        *  사용하고자 하는 Montage 화면에서 우하단 애님 슬롯 매니저 창 누르기 (없다면 상단 '창' 에서 활성화)
+        * (사용하고자 하는 슬롯을 새로 만들어야 한다면) 슬롯 추가 후 이름 작성 (여기선 UpperBody)
+        * 중앙하단의 DefaultGroup.DefaultSlot 으로 되어있는거 누르고 슬롯이름->UpperBody 선택
+        * 저장 후 AnimBP 가서
+            * 우선 기존 사용하던 (섞을 원본) 을 <B>캐시 포즈 새로 저장</B> 으로 저장
+            * 해당 캐시 포즈를 두개 불러서 Layer Blend By Bone 에 연결
+            * 아래 연결된 캐시와 Layer Blend 사이에 Default Slot 을 끼워넣어주고 클릭해서 슬롯 을 UpperBody 로 변경
+            * Layer Blend 클릭
+                * 레이어 설정 -> 인덱스 -> 분기 필터 에 + 버튼 눌러서 인덱스 추가
+                * 인덱스에서 어디서부터 블렌드 할껀지 사용할 본 이름 적기 (Skeleton 에서 본 돌려보면서 결정하기)
+                * 뎁스 블랜드 1로 설정 -> 메시 스페이스 회전 블렌드 활성화
+            * 저장
+17. UUserWidget
+    1. SpawnActor
+        * BeginPlay에서 CreateWidget을 실행했더니, 죽고 나서 SpawnActor로 리스폰 할 때는 BeginPlay 당시 PlayerController가 없었다. (라고 생각했다)
+        * 그래서 PlayerController 가 Pawn 을 OnPossess할 때 Component를 찾아서 Widget을 만들어줬다.
+        * 그런데 Component의 GetOwner는 해당 Component를 소유하는 Actor (컴포넌트 말고 진짜 배치되는 액터) 이고, 그 Actor를 다시 GetOwner 해야 Controller 가 나온다.
+        * Component 의 BeginPlay 에서 CreateWidget 할 때, OwningObject 매개변수에 GetOwner()->GetOwner() 를 넣었더니 정상적으로 작동했다.
+18. QuitGame
+    ```c++
+        UKismetSystemLibrary::QuitGame(GetWorld(), GetOwningPlayer(), EQuitPreference::Type::Quit, false);
+    ```

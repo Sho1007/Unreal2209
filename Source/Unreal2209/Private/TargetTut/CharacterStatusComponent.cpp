@@ -43,13 +43,10 @@ void UCharacterStatusComponent::BeginPlay()
 	Super::BeginPlay();
 
 	// ...
-
 	ATutGameMode* GameMode = Cast<ATutGameMode>(UGameplayStatics::GetGameMode(GetWorld()));
 	GameMode->SetSpawnTransform(GetOwner()->GetTransform());
 
-	StatusWidget = CreateWidget<UStatusWidget>(Cast<APlayerController>(Cast<ACharacter>(GetOwner())->GetController()), StatusWidgetClass);
-	if (StatusWidget && StatusWidget->IsValidLowLevelFast())
-		StatusWidget->AddToViewport();
+	CreateStatusWidget(Cast<APlayerController>(GetOwner()->GetOwner()));
 }
 
 
@@ -59,6 +56,15 @@ void UCharacterStatusComponent::TickComponent(float DeltaTime, ELevelTick TickTy
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	// ...
+}
+
+void UCharacterStatusComponent::CreateStatusWidget(APlayerController* PC)
+{
+	StatusWidget = CreateWidget<UStatusWidget>(PC, StatusWidgetClass);
+	if (StatusWidget && StatusWidget->IsValidLowLevelFast())
+	{
+		StatusWidget->AddToViewport();
+	}
 }
 
 void UCharacterStatusComponent::RecieveDamage(float Damage)
@@ -83,7 +89,21 @@ void UCharacterStatusComponent::RecieveDamage(float Damage)
 				UGameplayStatics::SpawnSoundAttached(DamageSoundCue, GetOwner()->GetRootComponent(), FName("None"), FVector(0, 0, 0), EAttachLocation::KeepRelativeOffset, false, 1.0f, 1.0f, 0.3f);
 			else
 				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] DamageSoundCue Is Not Valid"), *GetOwner()->GetName());
-			
+
+			if (ReactMontage && ReactMontage->IsValidLowLevelFast())
+			{
+				Cast<ACharacter>(GetOwner())->PlayAnimMontage(ReactMontage);
+			}
+			else
+				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] ReactMontage Is Not Valid"), *GetOwner()->GetName());
+			if (CameraShakeBase && CameraShakeBase->IsValidLowLevelFast())
+			{
+				Cast<APlayerController>(GetOwner()->GetOwner())->PlayerCameraManager.Get()->StartCameraShake(CameraShakeBase);
+			}
+			else
+			{
+				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] CameraShakeBase Is Not Valid"), *GetOwner()->GetName());
+			}
 		}
 	}
 }
@@ -110,9 +130,11 @@ void UCharacterStatusComponent::SetDead()
 		PlayerMainCamera->PostProcessSettings.bOverride_ColorSaturation = true;
 		PlayerMainCamera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
 	}
-
-	StatusWidget->ShowDeadMenu();
-	//RespawnPlayer();
+	if (StatusWidget && StatusWidget->IsValidLowLevelFast())
+	{
+		StatusWidget->ShowDeadMenu();
+	}
+		
 
 }
 
@@ -123,7 +145,6 @@ void UCharacterStatusComponent::RespawnPlayer()
 	if (DeadSoundComponent && DeadSoundComponent->IsValidLowLevelFast())
 	{
 		DeadSoundComponent->Stop();
-		DeadSoundComponent->DestroyComponent();
 	}
 
 	GameMode->RespwanPlayer(GetOwner());

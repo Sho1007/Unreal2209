@@ -28,6 +28,8 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
+	void CreateStatusWidget(APlayerController* PC);
+
 	UFUNCTION(BlueprintCallable)
 	void RecieveDamage(float Damage);
 	UFUNCTION(BlueprintCallable)
@@ -46,6 +48,11 @@ public:
 	float MaxHealth = 100.0f;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	bool bIsDead = false;
+
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	UAnimMontage* ReactMontage;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	TSubclassOf<UCameraShakeBase> CameraShakeBase;
 
 	// Sound Object
 	class USoundCue* DamageSoundCue;
