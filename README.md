@@ -1,50 +1,13 @@
-# 진행 중
-(언리얼 강의)   
-1. [멀티플레이어 인벤토리] (일시 중단) https://youtu.be/4CZoMKxVJuM?list=PLnHeglBaPYu-LRVJOgj0egeKwVGXFUSqE
-2. [Target Lock On / Off] c++ 변환 완료 -> 컴포넌트화 해야함
-3. [CharacterStatusComponent] 컴포넌트화 중
-    * ProgressBar의 percentage를 Bind하는 방법을 찾아봐야겠다.
-    * Respawn 기능을 만들었다.
-        * GameMode에 있는 Spawn Transform 을 적용하도록 설정해놨는데,
-        SavePoint 같은 SaveData 를 만들어야겠다. (돈, 능력치 등)
-
-(운영체제 강의)   
-https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
-
-아이템 삭제 (ItemWidget 을 nullptr 로 초기화) 시키면 한칸씩 당겨짐.. 왜? 
-
-# 해야할 것들
-## Inventory (일시 중단)
-> 인벤토리를 컴포넌트화 시키지 않고 플레이어에 바로 붙였더니 너무 지저분함.  
-> 추후 컴포넌트화 시켜서 다시 적용 예정
-### Add Function
-1. LineTrace 했을 때 true면 Outline 나오면서 [F] (Interact) 느낌의 버튼 활성화 (해당 물체의 표면에 있는듯한 Rotation 반영)
-    1. LineTrace 했을 때 true면 (이하 InteractInterface 상속받았을 때) CrossHair 활성화
-    2. Outline Material 구현
-    3. LineTrace 했을 때 true면 Outline Material 활성화
-    4. (HP Bar 구현 하면서) 해당 Actor 에 Interact Button Component 도 같이 달아보기
-    5. LineTrace 했을 때 true면 Interact Button Component 활성화
-    6. Interact Button Component 에 해당 Actor의 Rotation을 적용
-
-2. 현재 AddItem 하면 이미 존재하는 Item 의 경우 StackCount++ 해주고 있음
-    * 일단 MaxStackCount가 필요함
-    * MaxStackCount 인데 추가로 아이템이 들어오려고 할 경우 새 아이템을 생성해줘야함 (그러려면 ItemClass 가 같기때문에 새로운 구별 방법 (UUID)가 필요함 )
-    * ItemUpdate할 때 현재 Client 에서는 Update가 안되고 있음
-        * 새롭게 업데이트된 InventoryItems 배열로 Widget을 업데이트 하려고 함
-        * 만약 UGP의 Chlidren 중에 없는 Item 이 있다면 새로 생성
-        * !! 이 때 순서가 Server 와 Client가 동기화 되어있는지 꼭 확인 필요 !!
-    * 궁극적으로 Inventory Component를 만들어서 거기에 기능을 집어넣는게 제일 깔끔해 보임
-        * 해당 Component 안에는 Inventory 와 이를 표시하는 UWidget 이 같이 들어있어야할것
-### BugFix
-1. Item->Interact->Destroy (Destroy 할 때 시간이 걸려서 Intertact키를 연타하면 Invalid한 Item이 LineTrace 될 수 있음)
-    * 그렇다면 LineTraceChannel 을 ECC_Visibility 로 하니까 Item이 Interact될 때 Channel을 다른걸로 바꿔버리면 되지 않을까?
-
-## PlayerCharacter
-### Add Function
-* PlayerCharacterState 라는 Actor (혹은 Component)를 만들어서 State를 관리한다.
-    * [ ] 캐릭터 사망시 어떻게 처리할 것인가? (현재 Status Component에 bIsDead까지만 있음) (-> 이 참에 Respawn 혹은 죽은 이후에는 어떻게 처리할지 생각)
+# 포트폴리오 동영상 링크
+https://www.youtube.com/watch?v=3RmR-PMR3co
 
 # 완료한 것들
+* AI Enemy를 만들었다.
+    * BlackBoard에 정보를 저장하고, Behavior Tree에서 알고리즘을 수행한다.
+    * AI Controller에서 필요한 연결작업들을 수행 (Behavior Tree나 AI Perception 등)
+    * 이미 만들었던 플레이어 Anim_BP를 리타게터를 이용하여 리타깃 후 그대로 사용하였다.
+    * 공격 모션의 경우 플레이어는 Anim Notify로 Sphere Trace 하였는데, 에너미의 경우 몽타주 노티파이를 활용하였다.
+
 * Movement Input / Camera Input 을 c++로 Bind
 * DeadMenu Widget을 ActorStatusComponent 안에 만들었다. (해당 Property와 상호작용하기 때문에)
     * 죽으면 DeadMenuWidget이 표시되게 만들었다.
@@ -76,16 +39,10 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
         * 확실히 워크 플로우를 한번에 보기 편하고, 새로운 기능을 추가할 땐 블루프린트로 선작업하는게 훨씬 좋은 것 같다.
         * c++ 로 옮길땐 항상 생각지도 못한 변수가 생길 수 있다. 변수부터 차근차근 바꾸고 함수도 구현이 확실히 되는지, 외부참조는 없는지 확인 후 변환할 것
 
-
-
-
-* Replicate
-    * Character 의 Interact() 를 Client에서도 사용 가능하게 수정함 (그런데 현재 서버에서 안됨)
-    
-
-# 깨달은 점
+# 새로 배운 점
 1. Git 을 통해 버전 관리를 할 때는, 항상 visual studio project file 을 다시 generate 시켜줘야한다.
     * 다른 PC에서 작업한 c++ 파일이 여기서 pull 했더니 vs project에 안들어있음
+
 2. Class 의 Constructor 에서는 되도록 멤버 변수를 사용하는 일을 하지 말자 (생성, 초기화 관련된 일만 하자)
     * BeginPlay()를 이용하거나 Init() 함수를 따로 만들어서 사용하자.
 
@@ -93,7 +50,7 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
     * 함수 내부에서 먼저 Super::NaiveConstruct()를 실행 해 준 뒤 Post Construct 처럼 활용
 
 4. Interface 자체에서 구현된 경우 아래와 같이 cast 없이 바로 method 사용 가능   
-(멍청한 거였음 이건 해당 OBject를 import 했다는건데 그럴꺼면 interface 쓸 필요가 없음)   
+(멍청한 거였음 이건 해당 Object를 import 했다는건데 그럴꺼면 interface 쓸 필요가 없음)   
 (interface 는 두 객체가 서로 정보를 알지 못해도 interface 라는 공통분모를 가지고 소통하는거)
     * 이 때 interface 를 상속받은 class 에서 interface method를 override 한 경우 override 된 함수가 실행된다.
     * 만약 override 하지 않았다면 interface 자체에서 구현된 함수가 실행된다.
@@ -314,12 +271,27 @@ https://youtu.be/EdTtGv9w2sA?list=PLBrGAFAIyf5rby7QylRc6JxU5lzQ9c4tN&t=1251
                 * 인덱스에서 어디서부터 블렌드 할껀지 사용할 본 이름 적기 (Skeleton 에서 본 돌려보면서 결정하기)
                 * 뎁스 블랜드 1로 설정 -> 메시 스페이스 회전 블렌드 활성화
             * 저장
+    3. Retarget
+        * 이미 존재하는 애니메이션이나 애님 블루프린트를 다른 스켈레톤 메시에 그대로 적용시키는 방법
+        * 원본 스켈레톤 메시와 적용할 스켈레톤 메시 둘다 IK Rig가 필요하다.
+            * Chain에서 각각 뻗어나가는 부분들을 등록해준다.
+                1. 목부터 머리까지 (Head)
+                2. 왼 어깨부터 손까지 (Arm_L)
+                3. 오른 어깨부터 손까지 (Arm_R)
+                4. 왼 허벅지부터 발까지 (Leg_L)
+                5. 오른 허벅지부터 발까지 (Leg_R)
+                6. 척추 (Spine)
+            * 그리고 골반에 해당하는 부분 (Hip 혹은 Pelvis) 을 루트로 지정해준다.
+        * 그 후 IK Retargetor를 만들어서 원본과 적용할 IK Rig를 등록해준다.
+        * 그러면 이제 그 리타게터를 가지고 애니메이션이나 애님 블루프린트를 리타깃하여 사용할 수 있다.
+
 17. UUserWidget
     1. SpawnActor
         * BeginPlay에서 CreateWidget을 실행했더니, 죽고 나서 SpawnActor로 리스폰 할 때는 BeginPlay 당시 PlayerController가 없었다. (라고 생각했다)
         * 그래서 PlayerController 가 Pawn 을 OnPossess할 때 Component를 찾아서 Widget을 만들어줬다.
         * 그런데 Component의 GetOwner는 해당 Component를 소유하는 Actor (컴포넌트 말고 진짜 배치되는 액터) 이고, 그 Actor를 다시 GetOwner 해야 Controller 가 나온다.
         * Component 의 BeginPlay 에서 CreateWidget 할 때, OwningObject 매개변수에 GetOwner()->GetOwner() 를 넣었더니 정상적으로 작동했다.
+
 18. QuitGame
     ```c++
         UKismetSystemLibrary::QuitGame(GetWorld(), GetOwningPlayer(), EQuitPreference::Type::Quit, false);
