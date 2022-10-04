@@ -106,4 +106,9 @@ private:
 	UCameraComponent* CameraComponent;
 	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditDefaultsOnly)
 	USpringArmComponent* SpringArmComponent;
+	UPROPERTY(meta = (AllowPrivateAccess = true), BlueprintReadWrite, EditDefaultsOnly)
+	bool bIsRoll = false;
+
+private:
+	void SetLockOnMovement();
 };

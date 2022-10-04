@@ -19,14 +19,6 @@ UCharacterStatusComponent::UCharacterStatusComponent()
 
 	// ...
 
-	static ConstructorHelpers::FObjectFinder<USoundCue> DamageSoundCue_Body(TEXT("SoundCue'/Game/Resources/SFX/DamageSoundCue.DamageSoundCue'"));
-	if (DamageSoundCue_Body.Succeeded())
-		DamageSoundCue = DamageSoundCue_Body.Object;
-	
-	static ConstructorHelpers::FObjectFinder<USoundCue> DeadSoundCue_Body(TEXT("SoundCue'/Game/Resources/SFX/DeadSoundCue.DeadSoundCue'"));
-	if (DeadSoundCue_Body.Succeeded())
-		DeadSoundCue = DeadSoundCue_Body.Object;
-
 	static ConstructorHelpers::FObjectFinder<USoundCue> HealSoundCue_Body(TEXT("SoundCue'/Game/Resources/SFX/HealSoundCue.HealSoundCue'"));
 	if (HealSoundCue_Body.Succeeded())
 		HealSoundCue = HealSoundCue_Body.Object;
@@ -47,6 +39,8 @@ void UCharacterStatusComponent::BeginPlay()
 	GameMode->SetSpawnTransform(GetOwner()->GetTransform());
 
 	CreateStatusWidget(Cast<APlayerController>(GetOwner()->GetOwner()));
+	//if (Cast<APlayerController>(GetOwner()->GetOwner()) == nullptr)
+	//	Cast<ACharacter>(GetOwner())->GetMesh()->GetAnimInstance()->Montage_SetEndDelegate();
 }
 
 
@@ -74,6 +68,15 @@ void UCharacterStatusComponent::RecieveDamage(float Damage)
 	{
 		Health = FMath::Clamp(Health - Damage, 0, MaxHealth);
 
+		if (Cast<APlayerController>(GetOwner()->GetOwner()))
+		{
+			if (CameraShakeBase && CameraShakeBase->IsValidLowLevelFast())
+				Cast<APlayerController>(GetOwner()->GetOwner())->PlayerCameraManager.Get()->StartCameraShake(CameraShakeBase);
+			else
+				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] CameraShakeBase Is Not Valid"), *GetOwner()->GetName());
+		}
+		
+
 		if (Health == 0)
 		{
 			if (DeadSoundCue && DeadSoundCue->IsValidLowLevelFast())
@@ -86,7 +89,7 @@ void UCharacterStatusComponent::RecieveDamage(float Damage)
 		else
 		{
 			if (DamageSoundCue && DamageSoundCue->IsValidLowLevelFast())
-				UGameplayStatics::SpawnSoundAttached(DamageSoundCue, GetOwner()->GetRootComponent(), FName("None"), FVector(0, 0, 0), EAttachLocation::KeepRelativeOffset, false, 1.0f, 1.0f, 0.3f);
+				UGameplayStatics::SpawnSoundAttached(DamageSoundCue, GetOwner()->GetRootComponent(), FName("None"), FVector(0, 0, 0), EAttachLocation::KeepRelativeOffset, false, 5.0f, 1.0f, 0.0f);
 			else
 				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] DamageSoundCue Is Not Valid"), *GetOwner()->GetName());
 
@@ -96,14 +99,6 @@ void UCharacterStatusComponent::RecieveDamage(float Damage)
 			}
 			else
 				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] ReactMontage Is Not Valid"), *GetOwner()->GetName());
-			if (CameraShakeBase && CameraShakeBase->IsValidLowLevelFast())
-			{
-				Cast<APlayerController>(GetOwner()->GetOwner())->PlayerCameraManager.Get()->StartCameraShake(CameraShakeBase);
-			}
-			else
-			{
-				UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] CameraShakeBase Is Not Valid"), *GetOwner()->GetName());
-			}
 		}
 	}
 }
@@ -124,18 +119,21 @@ void UCharacterStatusComponent::Heal(float HealValue)
 void UCharacterStatusComponent::SetDead()
 {
 	bIsDead = true;
-	UCameraComponent* PlayerMainCamera = Cast<UCameraComponent>(GetOwner()->GetComponentByClass(UCameraComponent::StaticClass()));
-	if (PlayerMainCamera && PlayerMainCamera->IsValidLowLevelFast())
+	if (Cast<APlayerController>(GetOwner()->GetOwner()))
 	{
-		PlayerMainCamera->PostProcessSettings.bOverride_ColorSaturation = true;
-		PlayerMainCamera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
+		UCameraComponent* PlayerMainCamera = Cast<UCameraComponent>(GetOwner()->GetComponentByClass(UCameraComponent::StaticClass()));
+		if (PlayerMainCamera && PlayerMainCamera->IsValidLowLevelFast())
+		{
+			PlayerMainCamera->PostProcessSettings.bOverride_ColorSaturation = true;
+			PlayerMainCamera->PostProcessSettings.ColorSaturation = FVector4(0, 0, 0, 1);
+		}
+		if (StatusWidget && StatusWidget->IsValidLowLevelFast())
+		{
+			StatusWidget->ShowDeadMenu();
+		}
 	}
-	if (StatusWidget && StatusWidget->IsValidLowLevelFast())
-	{
-		StatusWidget->ShowDeadMenu();
-	}
-		
-
+	else
+		Destroy();
 }
 
 void UCharacterStatusComponent::RespawnPlayer()
@@ -146,9 +144,25 @@ void UCharacterStatusComponent::RespawnPlayer()
 	{
 		DeadSoundComponent->Stop();
 	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] DeadSoundComponent Is Not Valid"), *GetOwner()->GetName());
+	}
 
-	GameMode->RespwanPlayer(GetOwner());
+	if (GameMode && GameMode->IsValidLowLevelFast())
+	{
+		GameMode->RespwanPlayer(GetOwner());
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("[%s][CharacterStatusComponent] GameMode Is Not Valid"), *GetOwner()->GetName());
+	}
 
+	GetOwner()->Destroy();
+}
+
+void UCharacterStatusComponent::Destroy()
+{
 	GetOwner()->Destroy();
 }
 

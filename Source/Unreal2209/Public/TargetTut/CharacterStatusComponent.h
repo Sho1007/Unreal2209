@@ -40,6 +40,9 @@ public:
 
 	UFUNCTION(BlueprintCallable)
 	void RespawnPlayer();
+
+	UFUNCTION()
+	void Destroy();
 public:
 	// Property
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
@@ -48,6 +51,8 @@ public:
 	float MaxHealth = 100.0f;
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	bool bIsDead = false;
+	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
+	bool bIsSprint = false;
 
 	UPROPERTY(BlueprintReadWrite, EditDefaultsOnly)
 	UAnimMontage* ReactMontage;
@@ -55,7 +60,9 @@ public:
 	TSubclassOf<UCameraShakeBase> CameraShakeBase;
 
 	// Sound Object
+	UPROPERTY(EditDefaultsOnly)
 	class USoundCue* DamageSoundCue;
+	UPROPERTY(EditDefaultsOnly)
 	class USoundCue* DeadSoundCue;
 	class USoundCue* HealSoundCue;
 

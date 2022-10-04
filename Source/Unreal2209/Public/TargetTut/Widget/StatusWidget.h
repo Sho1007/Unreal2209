@@ -28,7 +28,11 @@ private:
 	UFUNCTION()
 	void OnClickedQuitButton();
 	
+public:
+	UPROPERTY(EditDefaultsOnly)
+	USoundBase* DeadMenuSound;
 private: 
+	UAudioComponent* DeadMenuSoundComponent;
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget))
 	UCanvasPanel* DeadMenu;
 	UPROPERTY(meta = (AllowPrivateAccess = true, BindWidget))

@@ -15,7 +15,7 @@ AInventoryTut_PlayerCharacter::AInventoryTut_PlayerCharacter()
 	PrimaryActorTick.bCanEverTick = true;
 
 	// SkeletalMesh Setting
-	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Body(TEXT("SkeletalMesh'/Game/Resources/Mesh/Knight/knight.knight'"));
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> SK_Body(TEXT("SkeletalMesh'/Game/Resources/Mesh/NewKnight/knight.knight'"));
 
 	if (SK_Body.Succeeded())
 	{

@@ -8,6 +8,7 @@
 #include "TargetTut/TargetTut_EnemyInterface.h"
 #include "TargetTut/TargetTut_Enemy.h"
 #include "TargetTut/CharacterStatusComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
 
 // Sets default values
 ATargetTut_Character::ATargetTut_Character()
@@ -19,9 +20,18 @@ ATargetTut_Character::ATargetTut_Character()
 	SpringArmComponent = CreateDefaultSubobject<USpringArmComponent>(TEXT("SpringArmComponent"));
 	SpringArmComponent->SetupAttachment(RootComponent);
 	SpringArmComponent->bUsePawnControlRotation = true;
-
+	//GetCharacterMovement()->RotationRate = FRotator(0.0f, 500.0f, 0.0f); // ...at this rotation rate
 	CameraComponent = CreateDefaultSubobject<UCameraComponent>(TEXT("CameraComponent"));
 	CameraComponent->SetupAttachment(SpringArmComponent);
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	// Configure character movement
+	GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...
+
+	CameraComponent->bUsePawnControlRotation = false;
 
 #pragma region LockOn
 	static ConstructorHelpers::FClassFinder<UObject> Temp(TEXT("Blueprint'/Game/TargetTut/Blueprints/BP_TestEnemy.BP_TestEnemy_C'"));
@@ -359,6 +369,7 @@ void ATargetTut_Character::LockOnCamera()
 {
 	SpringArmComponent->bEnableCameraRotationLag = true;
 	bIsLockOn = true;
+	SetLockOnMovement();
 	bIsCameraLocked = true;
 
 	if (TargetLocked && TargetLocked->IsValidLowLevelFast())
@@ -379,11 +390,13 @@ void ATargetTut_Character::LockOnCamera()
 
 void ATargetTut_Character::LockOff()
 {
+	
 	GetWorld()->GetTimerManager().ClearTimer(RangeCheckTimer);
 	RangeCheckTimer.Invalidate();
 
 	PotentialTargets.Empty();
 	bIsLockOn = false;
+	SetLockOnMovement();
 	bIsCameraLocked = false;
 	if (TargetLocked && TargetLocked->IsValidLowLevelFast())
 		if (TargetLocked->GetClass()->ImplementsInterface(UTargetTut_EnemyInterface::StaticClass()))
@@ -402,7 +415,14 @@ void ATargetTut_Character::ChekcRange()
 {
 	if (TargetLocked && TargetLocked->IsValidLowLevelFast())
 	{
-		//this->GetComponentByClass();
+		UCharacterStatusComponent* Component = Cast<UCharacterStatusComponent>(this->GetComponentByClass(UCharacterStatusComponent::StaticClass()));
+		if (Component && Component->IsValidLowLevelFast())
+			if (Component->bIsDead)
+			{
+				LockOff();
+				return;
+			}
+				
 		if (GetDistanceTo(TargetLocked) > TargetSearchRadius * 1.5f)
 		{
 			LockOff();
@@ -410,6 +430,28 @@ void ATargetTut_Character::ChekcRange()
 	}
 	else
 		LockOff();
+}
+
+void ATargetTut_Character::SetLockOnMovement()
+{
+	if (bIsLockOn)
+	{
+		bUseControllerRotationYaw = true;
+
+		// Configure character movement
+		GetCharacterMovement()->bOrientRotationToMovement = false; // Character moves in the direction of input...
+		
+		CameraComponent->bUsePawnControlRotation = true;
+	}
+	else
+	{
+		bUseControllerRotationYaw = false;
+
+		// Configure character movement
+		GetCharacterMovement()->bOrientRotationToMovement = true; // Character moves in the direction of input...
+
+		CameraComponent->bUsePawnControlRotation = false;
+	}
 }
 
 #pragma endregion
